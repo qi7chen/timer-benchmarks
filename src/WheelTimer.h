@@ -15,7 +15,7 @@
 //
 // complexity:
 //      AddTimer   CancelTimer   PerTick
-//       O(1)     O(1)           O(1)
+//       O(1)       O(1)          O(1)
 //
 class WheelTimer : public ITimerQueue
 {

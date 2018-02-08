@@ -31,9 +31,6 @@
 #include "Logging.h"
 #include "CmdLineFlags.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
 
 using namespace std;
 
@@ -213,28 +210,6 @@ void runBenchmarks()
     printBenchmarkResultsAsTable(results);
 }
 
-#ifdef _WIN32
-static uint64_t getPerformanceFreqency()
-{
-    uint64_t freq;
-    CHECK(QueryPerformanceFrequency((LARGE_INTEGER*)&freq));
-    return freq;
-};
-#endif
-
-uint64_t getNowTickCount()
-{
-#ifdef _WIN32
-    static uint64_t freq = getPerformanceFreqency();
-    uint64_t now;
-    CHECK(QueryPerformanceCounter((LARGE_INTEGER*)&now));
-    return (now * 1000000000UL) / freq;
-#else
-    timespec ts;
-    CHECK(clock_gettime(CLOCK_REALTIME, &ts) == 0);
-    return (ts.tv_sec * 1000000000UL) + ts.tv_nsec;
-#endif
-}
 
 struct ScaleInfo
 {

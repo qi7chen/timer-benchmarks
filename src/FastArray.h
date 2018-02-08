@@ -3,7 +3,7 @@
 #include <vector>
 
 //  Base class for objects stored in the array. 
-class ArrayItem
+class FastArrayItem
 {
 public:
 
@@ -55,7 +55,7 @@ public:
 
     size_type GetRealIndex(T* item)
     {
-        ArrayItem* ptr = (ArrayItem*)item;
+        FastArrayItem* ptr = (FastArrayItem*)item;
         return ptr->GetArrayIndex();
     }
 
@@ -68,7 +68,7 @@ public:
     {
         if (item)
         {
-            ArrayItem* ptr = (ArrayItem*)items_.back();
+            FastArrayItem* ptr = (FastArrayItem*)items_.back();
             ptr->SetArrayIndex((int)items_.size());
         }
         items_.push_back(item);
@@ -76,7 +76,7 @@ public:
 
     void Erase(T* item)
     {
-        ArrayItem* ptr = (ArrayItem*)item;
+        FastArrayItem* ptr = (FastArrayItem*)item;
         Erase(ptr->GetArrayIndex());
     }
 
@@ -85,7 +85,7 @@ public:
     {
         if (items_.back())
         {
-            ArrayItem* ptr = (ArrayItem*)items_.back();
+            FastArrayItem* ptr = (FastArrayItem*)items_.back();
             ptr->SetArrayIndex(index);
         }
         items_[index] = item.back();
@@ -96,12 +96,12 @@ public:
     {
         if (items_[a])
         {
-            ArrayItem* ptr = (ArrayItem*)items_[a];
+            FastArrayItem* ptr = (FastArrayItem*)items_[a];
             ptr->SetArrayIndex((int)b);
         }
         if (items_[b])
         {
-            ArrayItem* ptr = (ArrayItem*)items_[b];
+            FastArrayItem* ptr = (FastArrayItem*)items_[b];
             ptr->SetArrayIndex((int)a);
         }
         std::swap(items_[a], items_[b]);
