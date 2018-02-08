@@ -30,10 +30,16 @@ solution 'BenchmarkTimers'
         kind        'ConsoleApp'
         defines
         {
+            'GTEST_STDLIB_CXX11',
+            'GTEST_LANG_CXX11=1',
+            'GTEST_HAS_TR1_TUPLE=0',
+            'GTEST_HAS_STD_TUPLE_=1',
         }
         includedirs 
         { 
             'src',
+            '3rd/googletest',
+            '3rd/googletest/include',
         }
 
         files
@@ -41,4 +47,5 @@ solution 'BenchmarkTimers'
             'src/**.cpp',
             'src/**.h',
             'test/*.cpp',
+            '3rd/googletest/src/gtest-all.cc',
         }
