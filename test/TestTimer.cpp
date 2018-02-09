@@ -10,66 +10,89 @@
 #include "WheelTimer.h"
 #include "Clock.h"
 
-const int MaxCount = 20;
-const int SleepInterval = 5;
-
-template <typename T>
-class TimerQueueTest
+enum
 {
-public:
-    TimerQueueTest()
-    {
-        interval = 20;
-        timer.AddTimer(interval, std::bind(&TimerQueueTest::onTimeout, this, 1));
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        timer.AddTimer(interval, std::bind(&TimerQueueTest::onTimeout, this, 2));
-    }
-
-    void onTimeout(int i)
-    {
-        int64_t now = GetNowTime();
-
-        count++;
-        if (count < MaxCount)
-        {
-            timer.AddTimer(interval, std::bind(&TimerQueueTest::onTimeout, this, i)); // repeat again
-        }
-
-        const std::string& timestamp = CurrentTimeString(now);
-        printf("%s timer %d expired %d\n", timestamp.c_str(), i, count);
-
-        if (lastExpire > 0)
-        {
-            int64_t elapsed = now - lastExpire;
-            assert(elapsed >= interval);
-            assert(elapsed - interval <= 2*SleepInterval);
-        }
-        lastExpire = now;
-    }
-
-    void Run()
-    {
-        while (count < MaxCount)
-        {
-            auto now = std::chrono::system_clock::now();
-            auto timepoint = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-            timer.Tick(timepoint);
-            std::this_thread::sleep_for(std::chrono::milliseconds(SleepInterval));
-        }
-    }
-
-private:
-    T timer;
-    int interval = 0;
-    int64_t lastExpire = 0;
-    int count = 0;
+    ScheduleRange = 100,
+    MaxTimeoutCount = 20,
+    TOLERANCE = 5, // fault torlerance
 };
 
-TEST(TimerQueue, TestAddTimer)
-{
-    TimerQueueTest<PQTimer> test1;
-    test1.Run();
 
-    //TimerQueueTest<TreeTimer> test2;
-    //test2.Run();
+struct TimerContext
+{
+    int interval = 0;
+    int id = 0;
+    int timeoutCount = 0;
+    int64_t lastExpire = 0;
+    ITimerQueue* queue = nullptr;
+};
+
+static void onTimeout(TimerContext* ctx)
+{
+    int64_t now = CurrentTimeMillis();
+    ctx->timeoutCount++;
+
+    if (ctx->lastExpire > 0)
+    {
+        int64_t elapsed = now - ctx->lastExpire;
+        int64_t diff = elapsed - ctx->interval;
+        EXPECT_GE(elapsed, ctx->interval);
+        EXPECT_LE(diff, ctx->interval + TOLERANCE);
+    }
+    ctx->lastExpire = now;
+
+    const std::string& timestamp = CurrentTimeString(now);
+    //printf("%s timer[%d] expired of %d\n", timestamp.c_str(), ctx->id, ctx->timeoutCount);
+
+    if (ctx->timeoutCount < MaxTimeoutCount)
+    {
+        int interval = rand() % 50;
+        ctx->interval = interval;
+        ctx->queue->AddTimer(interval, std::bind(&onTimeout, ctx)); // repeat again
+    }
+    if (ctx->id % 2 == 0 && ctx->timeoutCount == MaxTimeoutCount / 2)
+    {
+        printf("cancel timer %d of %d\n", ctx->id, ctx->timeoutCount);
+        ctx->queue->CancelTimer(ctx->id);
+    }
+}
+
+static void TestTimerQueue(ITimerQueue* timer, int count)
+{
+    std::vector<TimerContext> ctxvec;
+    ctxvec.resize(count);
+    for (int i = 0; i < count; i++)
+    {
+        TimerContext* ctx = &ctxvec[i];
+        ctx->queue = timer;
+        ctx->interval = rand() % ScheduleRange;
+        int id = timer->AddTimer(ctx->interval, std::bind(&onTimeout, ctx));
+        ctx->id = id;
+        //printf("schedule timer %d of interval %d\n", id, ctx->interval);
+        //std::this_thread::sleep_for(std::chrono::milliseconds(ctx->interval/2));
+    }
+    printf("all timers scheduled, %d\n", count);
+    while (timer->Size() > 0)
+    {
+        timer->Update();
+        //std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+}
+
+TEST(TimerQueue, TestPQTimer)
+{
+    PQTimer timer;
+    TestTimerQueue(&timer, 100);
+}
+
+TEST(TimerQueue, TestTreeTimer)
+{
+    TreeTimer timer;
+    TestTimerQueue(&timer, 100);
+}
+
+TEST(TimerQueue, TestWheelTimer)
+{
+    WheelTimer timer;
+    TestTimerQueue(&timer, 100);
 }
