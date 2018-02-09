@@ -24,6 +24,9 @@ solution 'BenchmarkTimers'
             '_CRT_SECURE_NO_WARNINGS',
             'NOMINMAX',
         }
+    filter "action:gmake"
+        buildoptions '-std=c++11'
+        links 'pthread'
         
     project 'BenchmarkTimers'
         language    'C++'
@@ -49,3 +52,4 @@ solution 'BenchmarkTimers'
             'test/*.cpp',
             '3rd/googletest/src/gtest-all.cc',
         }
+
