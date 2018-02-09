@@ -14,5 +14,5 @@ int64_t GetNowTime();
 // Get current time in string format
 std::string CurrentTimeString(int64_t timepoint);
 
-// Get current tick count
-uint64_t getNowTickCount();
+// Get current tick count, in nanoseconds
+uint64_t GetNowTickCount();

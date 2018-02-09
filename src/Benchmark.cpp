@@ -134,7 +134,7 @@ static double runBenchmarkGetNSPerIteration(const BenchmarkFun& fun, const doubl
 
     double epochResults[epochs] = { 0 };
 
-    uint64_t global = getNowTickCount();
+    uint64_t global = GetNowTickCount();
 
     size_t actualEpochs = 0;
     for (; actualEpochs < epochs; ++actualEpochs)
@@ -153,7 +153,7 @@ static double runBenchmarkGetNSPerIteration(const BenchmarkFun& fun, const doubl
             // Done with the current epoch, we got a meaningful timing.
             break;
         }
-        if (getNowTickCount() - global >= timeBudgetInNs)
+        if (GetNowTickCount() - global >= timeBudgetInNs)
         {
             // No more time budget available.
             ++actualEpochs;

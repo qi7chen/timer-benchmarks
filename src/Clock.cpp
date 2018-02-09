@@ -26,25 +26,26 @@ std::string CurrentTimeString(int64_t timepoint)
 }
 
 
-#ifdef _WIN32
-static uint64_t getPerformanceFreqency()
-{
-    uint64_t freq;
-    CHECK(QueryPerformanceFrequency((LARGE_INTEGER*)&freq));
-    return freq;
-};
-#endif
-
-uint64_t getNowTickCount()
+uint64_t GetNowTickCount()
 {
 #ifdef _WIN32
-    static uint64_t freq = getPerformanceFreqency();
-    uint64_t now;
-    CHECK(QueryPerformanceCounter((LARGE_INTEGER*)&now));
+    uint64_t freq = 0;
+    if (!QueryPerformanceFrequency((LARGE_INTEGER*)&freq))
+    {
+        LOG(FATAL) << GetLastError();
+    }
+    uint64_t now = 0;
+    if (!QueryPerformanceCounter((LARGE_INTEGER*)&now))
+    {
+        LOG(FATAL) << GetLastError();
+    }
     return (now * 1000000000UL) / freq;
 #else
     timespec ts;
-    CHECK(clock_gettime(CLOCK_REALTIME, &ts) == 0);
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) < 0)
+    {
+        LOG(FATAL) << errno;
+    }
     return (ts.tv_sec * 1000000000UL) + ts.tv_nsec;
 #endif
 }

@@ -24,7 +24,7 @@ private:
 
 // Fast array implementation with O(1) access to item, insertion and removal.
 // Array stores pointers rather than objects. 
-// The objects have to be derived from ArrayItem class.
+// The objects have to be derived from `FastArrayItem` class.
 template <typename T>
 class FastArray
 {

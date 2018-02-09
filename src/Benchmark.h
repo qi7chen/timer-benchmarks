@@ -21,7 +21,7 @@
 #include <utility>
 #include <functional>
 #include "Preprocessor.h"
-
+#include "Clock.h"
 
 
 /**
@@ -48,9 +48,6 @@ void addBenchmarkInit(BenchmarkInitializer initializer);
 
 } // namespace detail
 
-// Current tick count(in nanoseconds)
-uint64_t getNowTickCount();
-
 
 
 /**
@@ -58,7 +55,7 @@ uint64_t getNowTickCount();
  */
 struct BenchmarkSuspender
 {
-    BenchmarkSuspender() : start_(getNowTickCount())
+    BenchmarkSuspender() : start_(GetNowTickCount())
     {
     }
 
@@ -66,14 +63,14 @@ struct BenchmarkSuspender
     BenchmarkSuspender(BenchmarkSuspender&& rhs)
         : start_(rhs.start_)
     {
-        rhs.start_ = getNowTickCount();
+        rhs.start_ = GetNowTickCount();
     }
 
     BenchmarkSuspender& operator=(const BenchmarkSuspender &) = delete;
     BenchmarkSuspender& operator=(BenchmarkSuspender && rhs)
     {
         start_ = rhs.start_;
-        rhs.start_ = getNowTickCount();
+        rhs.start_ = GetNowTickCount();
         return *this;
     }
 
@@ -85,12 +82,12 @@ struct BenchmarkSuspender
     void dismiss()
     {
         tally();
-        start_ = getNowTickCount();
+        start_ = GetNowTickCount();
     }
 
     void rehire()
     {
-        start_ = getNowTickCount();
+        start_ = GetNowTickCount();
     }
 
     /**
@@ -112,7 +109,7 @@ struct BenchmarkSuspender
 private:
     void tally()
     {
-        auto end = getNowTickCount();
+        auto end = GetNowTickCount();
         nsSpent += (end - start_);
         start_ = end;
     }
@@ -136,9 +133,9 @@ void addBenchmarkWithTimes(const char* file, const char* name, Lambda&& lambda)
         unsigned int niter;
 
         // CORE MEASUREMENT STARTS
-        auto const start = getNowTickCount();
+        auto const start = GetNowTickCount();
         niter = lambda(times);
-        auto const end = getNowTickCount();
+        auto const end = GetNowTickCount();
         // CORE MEASUREMENT ENDS
 
         return detail::TimeIterPair(end - start - BenchmarkSuspender::nsSpent, niter);
