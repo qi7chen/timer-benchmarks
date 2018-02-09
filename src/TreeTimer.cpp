@@ -5,6 +5,17 @@
 #include "TreeTimer.h"
 #include "Clock.h"
 
+struct TreeTimer::TimerNode
+{
+    int id = -1;
+    int64_t expires = 0;
+    TimerCallback cb;
+
+    bool operator < (const TreeTimer::TimerNode& b)
+    {
+        return expires < b.expires;
+    }
+};
 
 TreeTimer::TreeTimer()
 {
@@ -24,20 +35,19 @@ void TreeTimer::clear()
     }
 }
 
-int TreeTimer::AddTimer(int millsec, TimerCallback cb)
+int TreeTimer::AddTimer(uint32_t time, TimerCallback cb)
 {
-    int64_t expire = GetNowTime() + millsec;
+    int64_t expire = GetNowTickCount() + time;
     TimerNode* node = new TimerNode;
-    node->id = counter_;
-    node->expire = expire;
+    node->id = ++counter_;
+    node->expires = expire;
     node->cb = cb;
     tree_.insert(node);
-    ref_[counter_] = node;
-    counter_++;
+    ref_[node->id] = node;
     return node->id;
 }
 
-//  Complexity of this operation is O(n). We assume it is rarely used.
+
 void TreeTimer::CancelTimer(int id)
 {
     TimerNode* node = ref_[id];
@@ -57,20 +67,21 @@ void TreeTimer::CancelTimer(int id)
     }
 }
 
-void TreeTimer::Tick(int64_t now)
+void TreeTimer::Update(int64_t now)
 {
     while (!tree_.empty())
     {
         auto iter = tree_.begin();
         TimerNode* node = *iter;
-        if (now > node->expire)
+        if (now < node->expires)
         {
-            tree_.erase(iter);
-            if (node->cb)
-            {
-                node->cb();
-            }
-            delete node;
+            break;
         }
+        tree_.erase(iter);
+        if (node->cb)
+        {
+            node->cb();
+        }
+        delete node;
     }
 }

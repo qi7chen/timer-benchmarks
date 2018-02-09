@@ -8,27 +8,16 @@
 #include <unordered_map>
 
 
-// timer queue implemented with min-heap
+// timer queue implemented with priority queue(min-heap)
 //
 // complexity:
-//      AddTimer   CancelTimer   PerTick
-//       O(lgN)     O(1)           O(1)
+//     AddTimer    CancelTimer   PerTick
+//      O(log N)    O(log N)       O(1)
 //
 class PQTimer : public ITimerQueue
 {
 public:
-    struct TimerNode
-    {
-        int index = -1;
-        int id = -1;
-        int64_t expire = 0;
-        TimerCallback cb;
-
-        bool operator < (const PQTimer::TimerNode& b)
-        {
-            return expire > b.expire; // we need min-heap
-        }
-    };
+    struct TimerNode;
 
 public:
     PQTimer();
@@ -37,11 +26,11 @@ public:
     PQTimer(const PQTimer&) = delete;
     PQTimer& operator=(const PQTimer&) = delete;
 
-    int AddTimer(int millsec, TimerCallback cb) override;
+    int AddTimer(uint32_t time, TimerCallback cb) override;
 
     void CancelTimer(int id) override;
 
-    void Tick(int64_t now) override;
+    void Update(int64_t now) override;
 
 private:
     void clear();
@@ -49,7 +38,7 @@ private:
     void siftup(int j);
 
 private:
-    int counter_ = 1;
+    int counter_ = 0;
     std::vector<TimerNode*> heap_;
     std::unordered_map<int, TimerNode*> ref_;
 };

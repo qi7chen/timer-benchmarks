@@ -11,22 +11,12 @@
 // timer queue implemented with red-black tree.
 // complexity:
 //      AddTimer   CancelTimer   PerTick
-//       O(lgN)      O(N)         O(lgN)
+//       O(log N)   O(log N)      O(log N)
 //
 class TreeTimer : public ITimerQueue
 {
 public:
-    struct TimerNode
-    {
-        int64_t expire = 0;
-        int id = -1;
-        TimerCallback cb;
-
-        bool operator < (const TreeTimer::TimerNode& b)
-        {
-            return expire < b.expire;
-        }
-    };
+    struct TimerNode;
 
 public:
     TreeTimer();
@@ -35,17 +25,17 @@ public:
     TreeTimer(const TreeTimer&) = delete;
     TreeTimer& operator=(const TreeTimer&) = delete;
 
-    int AddTimer(int millsec, TimerCallback cb) override;
+    int AddTimer(uint32_t time, TimerCallback cb) override;
 
     void CancelTimer(int id) override;
 
-    void Tick(int64_t now) override;
+    void Update(int64_t now) override;
 
 private:
     void clear();
 
 private:
-    int counter_ = 1;
+    int counter_ = 0;
     std::multiset<TimerNode*> tree_;
     std::unordered_map<int, TimerNode*> ref_;
 };
