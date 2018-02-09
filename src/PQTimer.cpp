@@ -116,6 +116,7 @@ bool PQTimer::CancelTimer(int id)
         }
         heap_.pop_back();
         ref_.erase(id);
+        delete node;
         return true;
     }
     return false;
