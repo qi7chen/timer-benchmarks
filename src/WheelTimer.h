@@ -9,6 +9,9 @@
 
 // timer queue implemented with hashed hierarchical wheel.
 //
+// inspired by linux kernel, see links below
+// https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/timer.c?h=v3.2.98
+//
 // We model timers as the number of ticks until the next
 // due event.We allow 32 - bits of space to track this
 // due interval, and break that into 4 regions of 8 bits.
@@ -76,7 +79,7 @@ public:
 private:
     void tick();
     void addTimerNode(TimerNode* node);
-    void cascadeTimer(int bucket, int index);
+    bool cascadeTimers(int bucket, int index);
     void clearList(TimerList* list);
     void clearAll();
 
@@ -86,7 +89,7 @@ private:
     int counter_ = 0;
     int size_ = 0;
     TimerList near_[TVN_SIZE];
-    TimerList buckets_[WHEEL_BUCKETS][TVN_SIZE];
+    TimerList buckets_[WHEEL_BUCKETS][TVR_SIZE];
     std::unordered_map<int, TimerNode*> ref_;
 };
 

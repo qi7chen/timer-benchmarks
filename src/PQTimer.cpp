@@ -108,6 +108,7 @@ bool PQTimer::CancelTimer(int id)
         if (i != n)
         {
             std::swap(heap_[i], heap_[n]);
+            heap_[i]->index = i;
             if (!siftdown(i, n))
             {
                 siftup(i);

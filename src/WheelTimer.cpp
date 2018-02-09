@@ -127,40 +127,44 @@ bool WheelTimer::CancelTimer(int id)
     return false;
 }
 
-void WheelTimer::cascadeTimer(int bucket, int index)
+// cascade all the timers at bucket of index up one level
+bool WheelTimer::cascadeTimers(int bucket, int index)
 {
-    TimerList* list = &buckets_[bucket][index];
-    TimerNode* node = list->head.next;
+    // swap list
+    TimerList list = buckets_[bucket][index];
+    buckets_[bucket][index].reset();
+
+    TimerNode* node = list.head.next;
     while (node != nullptr)
     {
         addTimerNode(node);
         node = node->next;
     }
-    list->reset();
+    return index == 0;
 }
+
+#define INDEX(N) ((jiffies_ >> (TVR_BITS + (N) * TVN_BITS)) & TVN_MASK)
 
 // cascades all vectors and executes all expired timer
 void WheelTimer::tick()
 {
     int index = jiffies_ & TVR_MASK;
-    if (index == 0)
+    if (index == 0) // cascade timers
     {
-        // cascade timers
-        for (int i = 0; i < WHEEL_BUCKETS; i++)
-        {
-            int idx = ((jiffies_ >> (TVR_BITS + (i)* TVN_BITS)) & TVN_MASK);
-            cascadeTimer(i, idx);
-            if (idx > 0)
-            {
-                break;
-            }
-        }
+        if (cascadeTimers(0, INDEX(0)) && 
+            cascadeTimers(1, INDEX(1)) && 
+            cascadeTimers(2, INDEX(2)))
+            cascadeTimers(3, INDEX(3));
     }
+#undef INDEX
     
     ++jiffies_;
 
-    TimerList* expired = &near_[index];
-    TimerNode* node = expired->head.next;
+    // swap list
+    TimerList expired = near_[index];
+    near_[index].reset();
+
+    TimerNode* node = expired.head.next;
     while (node != nullptr)
     {
         if (!node->canceld && node->cb)
@@ -171,9 +175,8 @@ void WheelTimer::tick()
         ref_.erase(node->id);
         TimerNode* todel = node;
         node = node->next;
-        delete node;
+        delete todel;
     }
-    expired->reset();
 }
 
 void WheelTimer::Update()
