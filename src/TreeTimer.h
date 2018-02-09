@@ -27,15 +27,18 @@ public:
 
     int AddTimer(uint32_t time, TimerCallback cb) override;
 
-    void CancelTimer(int id) override;
+    bool CancelTimer(int id) override;
 
-    void Update(int64_t now) override;
+    void Update() override;
+
+    int Size() const { return (int)tree_.size(); }
 
 private:
     void clear();
 
 private:
     int counter_ = 0;
+    const int64_t twepoch; // custom epoch
     std::multiset<TimerNode*> tree_;
     std::unordered_map<int, TimerNode*> ref_;
 };

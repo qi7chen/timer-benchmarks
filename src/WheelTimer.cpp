@@ -10,9 +10,8 @@ const int64_t TIME_UNIT = int64_t(1e7);       // centisecond, i.e. 1/100 second
 const uint64_t MAX_TVAL = ((uint64_t)((1ULL << (TVR_BITS + 4 * TVN_BITS)) - 1));
 
 WheelTimer::WheelTimer()
+    :current_(GetNowTickCount())
 {
-    current_ = GetNowTickCount();
-    time_point_ = GetNowTime();
     ref_.rehash(32);
 }
 
@@ -22,10 +21,36 @@ WheelTimer::~WheelTimer()
     clearAll();
 }
 
+void WheelTimer::clearList(TimerList* list)
+{
+    TimerNode* node = list->head.next;
+    while (node != nullptr)
+    {
+        ref_.erase(node->id);
+        TimerNode* todel = node;
+        node = node->next;
+        delete todel;
+    }
+    list->reset();
+}
+
 void WheelTimer::clearAll()
 {
-
+    for (int i = 0; i < TVN_SIZE; i++)
+    {
+        clearList(&near_[i]);
+    }
+    for (int i = 0; i < WHEEL_BUCKETS; i++)
+    {
+        for (int j = 0; j < TVR_SIZE; j++)
+        {
+            clearList(&buckets_[i][j]);
+        }
+    }
+    ref_.clear();
 }
+
+
 
 void WheelTimer::addTimerNode(TimerNode* node)
 {
@@ -74,6 +99,7 @@ void WheelTimer::addTimerNode(TimerNode* node)
     // add to linked list
     list->tail->next = node;
     list->tail = node;
+    list->count++;
 }
 
 int WheelTimer::AddTimer(uint32_t time, TimerCallback cb)
@@ -84,17 +110,21 @@ int WheelTimer::AddTimer(uint32_t time, TimerCallback cb)
     node->id = ++counter_;
     addTimerNode(node);
     ref_[node->id] = node;
+    size_++;
     return node->id;
 }
 
 // Do lazy cancellation, so single linked list is enough
-void WheelTimer::CancelTimer(int id)
+bool WheelTimer::CancelTimer(int id)
 {
     TimerNode* node = ref_[id];
     if (node != nullptr)
     {
         node->canceld = true;
+        size_--;
+        return true;
     }
+    return false;
 }
 
 void WheelTimer::cascadeTimer(int bucket, int index)
@@ -137,15 +167,18 @@ void WheelTimer::tick()
         {
             node->cb();
         }
+        size_--;
         ref_.erase(node->id);
-        delete node;
+        TimerNode* todel = node;
         node = node->next;
+        delete node;
     }
     expired->reset();
 }
 
-void WheelTimer::Update(int64_t now)
+void WheelTimer::Update()
 {
+    int64_t now = GetNowTickCount();
     if (now < current_)
     {
         LOG(ERROR) << "time go backwards: " << now << ", " << current_;
@@ -153,10 +186,9 @@ void WheelTimer::Update(int64_t now)
     }
     else if (now >= current_)
     {
-        int64_t diff = now - current_;
+        int64_t diff = (now - current_) / TIME_UNIT;
         current_ = now;
-        time_point_ += diff;
-        for (int i = 0; i < diff/TIME_UNIT; i++)
+        for (int i = 0; i < diff; i++)
         {
             tick();
         }

@@ -47,6 +47,7 @@ public:
     {
         TimerNode head;
         TimerNode* tail = nullptr;
+        int count = 0; // debugging
 
         TimerList()
         {
@@ -56,6 +57,7 @@ public:
         void reset()
         {
             tail = &head;
+            count = 0;
         }
     };
 
@@ -65,21 +67,24 @@ public:
 
     int AddTimer(uint32_t time, TimerCallback cb) override;
 
-    void CancelTimer(int id) override;
+    bool CancelTimer(int id) override;
 
-    void Update(int64_t now) override;
+    void Update() override;
+
+    int Size() const { return size_; }
 
 private:
     void tick();
     void addTimerNode(TimerNode* node);
     void cascadeTimer(int bucket, int index);
+    void clearList(TimerList* list);
     void clearAll();
 
 private:
     int64_t current_ = 0;
-    int64_t time_point_ = 0;
     int64_t jiffies_ = 0;
     int counter_ = 0;
+    int size_ = 0;
     TimerList near_[TVN_SIZE];
     TimerList buckets_[WHEEL_BUCKETS][TVN_SIZE];
     std::unordered_map<int, TimerNode*> ref_;

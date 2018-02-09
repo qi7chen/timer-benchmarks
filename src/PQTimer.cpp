@@ -17,6 +17,7 @@ struct PQTimer::TimerNode
 };
 
 PQTimer::PQTimer()
+    : twepoch(CurrentTimeMillis())
 {
     // reserve a little space
     ref_.rehash(16);
@@ -35,6 +36,8 @@ void PQTimer::clear()
     {
         delete ptr;
     }
+    heap_.clear();
+    ref_.clear();
 }
 
 bool PQTimer::siftdown(int x, int n)
@@ -83,7 +86,7 @@ void PQTimer::siftup(int j)
 
 int PQTimer::AddTimer(uint32_t time, TimerCallback cb)
 {
-    int64_t expire = GetNowTickCount() + time;
+    int64_t expire = CurrentTimeMillis() - twepoch + time;
     TimerNode* node = new TimerNode;
     node->id = ++counter_;
     node->expires = expire;
@@ -95,8 +98,7 @@ int PQTimer::AddTimer(uint32_t time, TimerCallback cb)
     return node->id;
 }
 
-//  Complexity of this operation is O(n). We assume it is rarely used.
-void PQTimer::CancelTimer(int id)
+bool PQTimer::CancelTimer(int id)
 {
     TimerNode* node = ref_[id];
     if (node != nullptr)
@@ -113,11 +115,14 @@ void PQTimer::CancelTimer(int id)
         }
         heap_.pop_back();
         ref_.erase(id);
+        return true;
     }
+    return false;
 }
 
-void PQTimer::Update(int64_t now)
+void PQTimer::Update()
 {
+    int64_t now = CurrentTimeMillis() - twepoch;
     while (!heap_.empty())
     {
         TimerNode* node = heap_.front();
@@ -134,6 +139,7 @@ void PQTimer::Update(int64_t now)
         {
             node->cb();
         }
+        ref_.erase(node->id);
         delete node;
     }
 }

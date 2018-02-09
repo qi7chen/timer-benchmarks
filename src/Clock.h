@@ -8,11 +8,12 @@
 #include <string>
 
 
-// Get current unix time
-int64_t GetNowTime();
+// Get current unix time in milliseconds
+int64_t CurrentTimeMillis();
 
 // Get current time in string format
 std::string CurrentTimeString(int64_t timepoint);
 
 // Get current tick count, in nanoseconds
 uint64_t GetNowTickCount();
+
