@@ -38,11 +38,29 @@ void TreeTimer::clear()
     ref_.clear();
 }
 
+int TreeTimer::nextCounter()
+{
+    int next = counter_ + 1;
+    for (;;)
+    {
+        next = next < 0 ? 0 : next;
+        if (ref_.count(next) > 0)
+        {
+            next++;
+            continue;
+        }
+        break;
+    }
+    counter_ = next;
+    return next;
+}
+
+
 int TreeTimer::AddTimer(uint32_t time, TimerCallback cb)
 {
     int64_t expire = CurrentTimeMillis() - twepoch + time;
     TimerNode* node = new TimerNode;
-    node->id = ++counter_;
+    node->id = nextCounter();
     node->expires = expire;
     node->cb = cb;
     tree_.insert(node);
@@ -53,7 +71,7 @@ int TreeTimer::AddTimer(uint32_t time, TimerCallback cb)
 
 bool TreeTimer::CancelTimer(int id)
 {
-    TimerNode* node = ref_[id];
+    TimerNode* node = (TimerNode*)ref_[id];
     if (node != nullptr)
     {
         auto range = tree_.equal_range(node);

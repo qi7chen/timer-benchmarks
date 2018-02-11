@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ITimer.h"
+#include "TimerQueueBase.h"
 #include <unordered_map>
 
 // timer queue implemented with hashed hierarchical wheel.
@@ -33,7 +33,7 @@ enum
     TVR_MASK = (TVR_SIZE - 1),      //
 };
 
-class WheelTimer : public ITimerQueue
+class WheelTimer : public TimerQueueBase
 {
 public:
     struct TimerNode
@@ -82,14 +82,13 @@ private:
     bool cascadeTimers(int bucket, int index);
     void clearList(TimerList* list);
     void clearAll();
+    int nextCounter();
 
 private:
     int64_t current_ = 0;
     int64_t jiffies_ = 0;
-    int counter_ = 0;
     int size_ = 0;
     TimerList near_[TVN_SIZE];
     TimerList buckets_[WHEEL_BUCKETS][TVR_SIZE];
-    std::unordered_map<int, TimerNode*> ref_;
 };
 

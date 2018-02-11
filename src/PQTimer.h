@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ITimer.h"
+#include "TimerQueueBase.h"
 #include <vector>
 #include <unordered_map>
 
@@ -15,7 +15,7 @@
 //     AddTimer    CancelTimer   PerTick
 //      O(log N)    O(log N)       O(1)
 //
-class PQTimer : public ITimerQueue
+class PQTimer : public TimerQueueBase
 {
 public:
     struct TimerNode;
@@ -23,9 +23,6 @@ public:
 public:
     PQTimer();
     ~PQTimer();
-
-    PQTimer(const PQTimer&) = delete;
-    PQTimer& operator=(const PQTimer&) = delete;
 
     int AddTimer(uint32_t time, TimerCallback cb) override;
 
@@ -41,8 +38,6 @@ private:
     void siftup(int j);
 
 private:
-    int counter_ = 0;
     const int64_t twepoch; // custom epoch
     std::vector<TimerNode*> heap_;
-    std::unordered_map<int, TimerNode*> ref_;
 };

@@ -50,7 +50,22 @@ void WheelTimer::clearAll()
     ref_.clear();
 }
 
-
+int WheelTimer::nextCounter()
+{
+    int next = counter_ + 1;
+    for (;;)
+    {
+        next = next < 0 ? 0 : next;
+        if (ref_.count(next) > 0)
+        {
+            next++;
+            continue;
+        }
+        break;
+    }
+    counter_ = next;
+    return next;
+}
 
 void WheelTimer::addTimerNode(TimerNode* node)
 {
@@ -117,7 +132,7 @@ int WheelTimer::AddTimer(uint32_t time, TimerCallback cb)
 // Do lazy cancellation, so single linked list is enough
 bool WheelTimer::CancelTimer(int id)
 {
-    TimerNode* node = ref_[id];
+    TimerNode* node =(TimerNode*)ref_[id];
     if (node != nullptr)
     {
         node->canceld = true;

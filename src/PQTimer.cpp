@@ -84,11 +84,13 @@ void PQTimer::siftup(int j)
     }
 }
 
+
+
 int PQTimer::AddTimer(uint32_t time, TimerCallback cb)
 {
     int64_t expire = CurrentTimeMillis() - twepoch + time;
     TimerNode* node = new TimerNode;
-    node->id = ++counter_;
+    node->id = nextCounter();
     node->expires = expire;
     node->cb = cb;
     node->index = heap_.size();
@@ -100,7 +102,7 @@ int PQTimer::AddTimer(uint32_t time, TimerCallback cb)
 
 bool PQTimer::CancelTimer(int id)
 {
-    TimerNode* node = ref_[id];
+    TimerNode* node = (TimerNode*)ref_[id];
     if (node != nullptr)
     {
         int n = (int)heap_.size() - 1;

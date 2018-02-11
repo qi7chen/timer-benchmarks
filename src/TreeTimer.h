@@ -4,16 +4,16 @@
 
 #pragma once
 
-#include "ITimer.h"
+#include "TimerQueueBase.h"
 #include <set>
-#include <unordered_map>
+
 
 // timer queue implemented with red-black tree.
 // complexity:
 //      AddTimer   CancelTimer   PerTick
 //       O(log N)   O(log N)      O(log N)
 //
-class TreeTimer : public ITimerQueue
+class TreeTimer : public TimerQueueBase
 {
 public:
     struct TimerNode;
@@ -21,9 +21,6 @@ public:
 public:
     TreeTimer();
     ~TreeTimer();
-
-    TreeTimer(const TreeTimer&) = delete;
-    TreeTimer& operator=(const TreeTimer&) = delete;
 
     int AddTimer(uint32_t time, TimerCallback cb) override;
 
@@ -35,11 +32,10 @@ public:
 
 private:
     void clear();
+    int nextCounter();
 
 private:
-    int counter_ = 0;
     const int64_t twepoch; // custom epoch
     std::multiset<TimerNode*> tree_;
-    std::unordered_map<int, TimerNode*> ref_;
 };
 
