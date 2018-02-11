@@ -9,13 +9,13 @@
 #endif
 #include "Logging.h"
 
-int64_t CurrentTimeMillis()
+int64_t Clock::CurrentTimeMillis()
 {
     auto now = std::chrono::system_clock::now();
     return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 }
 
-std::string CurrentTimeString(int64_t timepoint)
+std::string Clock::CurrentTimeString(int64_t timepoint)
 {
     time_t sec = timepoint / 1000;
     struct tm* pinfo = localtime(&sec); // make sure localtime has thread-safety
@@ -25,8 +25,7 @@ std::string CurrentTimeString(int64_t timepoint)
     return std::string(buffer, n);
 }
 
-
-uint64_t GetNowTickCount()
+uint64_t Clock::GetNowTickCount()
 {
 #ifdef _WIN32
     uint64_t freq = 0;

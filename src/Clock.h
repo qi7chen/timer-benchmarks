@@ -7,13 +7,15 @@
 #include <stdint.h>
 #include <string>
 
+class Clock
+{
+public:
+    // Get current unix time in milliseconds
+    static int64_t CurrentTimeMillis();
 
-// Get current unix time in milliseconds
-int64_t CurrentTimeMillis();
+    // Get current time in string format
+    static std::string CurrentTimeString(int64_t timepoint);
 
-// Get current time in string format
-std::string CurrentTimeString(int64_t timepoint);
-
-// Get current tick count, in nanoseconds
-uint64_t GetNowTickCount();
-
+    // Get current tick count, in nanoseconds
+    static uint64_t GetNowTickCount();
+};

@@ -10,7 +10,7 @@ const int64_t TIME_UNIT = int64_t(1e7);       // centisecond, i.e. 1/100 second
 const uint64_t MAX_TVAL = ((uint64_t)((1ULL << (TVR_BITS + 4 * TVN_BITS)) - 1));
 
 WheelTimer::WheelTimer()
-    :current_(GetNowTickCount())
+    :current_(Clock::GetNowTickCount())
 {
     ref_.rehash(32);
 }
@@ -196,7 +196,7 @@ void WheelTimer::tick()
 
 void WheelTimer::Update()
 {
-    int64_t now = GetNowTickCount();
+    int64_t now = Clock::GetNowTickCount();
     if (now < current_)
     {
         LOG(ERROR) << "time go backwards: " << now << ", " << current_;

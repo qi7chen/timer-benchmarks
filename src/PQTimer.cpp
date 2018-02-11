@@ -17,7 +17,7 @@ struct PQTimer::TimerNode
 };
 
 PQTimer::PQTimer()
-    : twepoch(CurrentTimeMillis())
+    : twepoch(Clock::CurrentTimeMillis())
 {
     // reserve a little space
     ref_.rehash(16);
@@ -84,11 +84,9 @@ void PQTimer::siftup(int j)
     }
 }
 
-
-
 int PQTimer::AddTimer(uint32_t time, TimerCallback cb)
 {
-    int64_t expire = CurrentTimeMillis() - twepoch + time;
+    int64_t expire = Clock::CurrentTimeMillis() - twepoch + time;
     TimerNode* node = new TimerNode;
     node->id = nextCounter();
     node->expires = expire;
@@ -126,7 +124,7 @@ bool PQTimer::CancelTimer(int id)
 
 void PQTimer::Update()
 {
-    int64_t now = CurrentTimeMillis() - twepoch;
+    int64_t now = Clock::CurrentTimeMillis() - twepoch;
     while (!heap_.empty())
     {
         TimerNode* node = heap_.front();

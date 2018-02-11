@@ -55,7 +55,7 @@ void addBenchmarkInit(BenchmarkInitializer initializer);
  */
 struct BenchmarkSuspender
 {
-    BenchmarkSuspender() : start_(GetNowTickCount())
+    BenchmarkSuspender() : start_(Clock::GetNowTickCount())
     {
     }
 
@@ -63,14 +63,14 @@ struct BenchmarkSuspender
     BenchmarkSuspender(BenchmarkSuspender&& rhs)
         : start_(rhs.start_)
     {
-        rhs.start_ = GetNowTickCount();
+        rhs.start_ = Clock::GetNowTickCount();
     }
 
     BenchmarkSuspender& operator=(const BenchmarkSuspender &) = delete;
     BenchmarkSuspender& operator=(BenchmarkSuspender && rhs)
     {
         start_ = rhs.start_;
-        rhs.start_ = GetNowTickCount();
+        rhs.start_ = Clock::GetNowTickCount();
         return *this;
     }
 
@@ -82,12 +82,12 @@ struct BenchmarkSuspender
     void dismiss()
     {
         tally();
-        start_ = GetNowTickCount();
+        start_ = Clock::GetNowTickCount();
     }
 
     void rehire()
     {
-        start_ = GetNowTickCount();
+        start_ = Clock::GetNowTickCount();
     }
 
     /**
@@ -109,7 +109,7 @@ struct BenchmarkSuspender
 private:
     void tally()
     {
-        auto end = GetNowTickCount();
+        auto end = Clock::GetNowTickCount();
         nsSpent += (end - start_);
         start_ = end;
     }
@@ -133,9 +133,9 @@ void addBenchmarkWithTimes(const char* file, const char* name, Lambda&& lambda)
         unsigned int niter;
 
         // CORE MEASUREMENT STARTS
-        auto const start = GetNowTickCount();
+        auto const start = Clock::GetNowTickCount();
         niter = lambda(times);
-        auto const end = GetNowTickCount();
+        auto const end = Clock::GetNowTickCount();
         // CORE MEASUREMENT ENDS
 
         return detail::TimeIterPair(end - start - BenchmarkSuspender::nsSpent, niter);

@@ -21,14 +21,14 @@ public:
     TimerQueueBase(const TimerQueueBase&) = delete;
     TimerQueueBase& operator=(const TimerQueueBase&) = delete;
 
-    // add a timer to schedule after `time` milliseconds
-    // returns an unique id identify this timer
+    // add a timer to schedule after `time` milliseconds.
+    // returns an unique id identify this timer.
     virtual int AddTimer(uint32_t time, TimerCallback cb) = 0;
 
-    // cancel a timer by id
+    // cancel a timer by id.
     virtual bool CancelTimer(int id) = 0;
 
-    // per-tick bookkeeping
+    // per-tick bookkeeping.
     virtual void Update() = 0;
 
     virtual int Size() const = 0;
@@ -37,5 +37,5 @@ protected:
     int nextCounter();
 
     int counter_ = 0;
-    std::unordered_map<int, void*> ref_; 
+    std::unordered_map<int, void*> ref_; // keep a hash reference to id, make O(1) searching
 };

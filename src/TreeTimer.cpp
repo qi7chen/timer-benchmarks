@@ -18,7 +18,7 @@ struct TreeTimer::TimerNode
 };
 
 TreeTimer::TreeTimer()
-    : twepoch(CurrentTimeMillis())
+    : twepoch(Clock::CurrentTimeMillis())
 {
 }
 
@@ -38,27 +38,9 @@ void TreeTimer::clear()
     ref_.clear();
 }
 
-int TreeTimer::nextCounter()
-{
-    int next = counter_ + 1;
-    for (;;)
-    {
-        next = next < 0 ? 0 : next;
-        if (ref_.count(next) > 0)
-        {
-            next++;
-            continue;
-        }
-        break;
-    }
-    counter_ = next;
-    return next;
-}
-
-
 int TreeTimer::AddTimer(uint32_t time, TimerCallback cb)
 {
-    int64_t expire = CurrentTimeMillis() - twepoch + time;
+    int64_t expire = Clock::CurrentTimeMillis() - twepoch + time;
     TimerNode* node = new TimerNode;
     node->id = nextCounter();
     node->expires = expire;
@@ -67,7 +49,6 @@ int TreeTimer::AddTimer(uint32_t time, TimerCallback cb)
     ref_[node->id] = node;
     return node->id;
 }
-
 
 bool TreeTimer::CancelTimer(int id)
 {
@@ -91,7 +72,7 @@ bool TreeTimer::CancelTimer(int id)
 
 void TreeTimer::Update()
 {
-    int64_t now = CurrentTimeMillis() - twepoch;
+    int64_t now = Clock::CurrentTimeMillis() - twepoch;
     while (!tree_.empty())
     {
         auto iter = tree_.begin();
