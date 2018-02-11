@@ -15,11 +15,11 @@
 
 复杂度比较：
 
-algorithm | AddTimer() | CancelTimer() | Tick()   | implementation
----------------------------------------------------------------
-最小堆    | O(log N)   | O(log N)      | O(1)     | src/PQTimer.h
-红黑树    | O(log N)   | O(log N)      | O(log N) | src/TreeTimer.h
-时间轮    | O(1)       | O(1)          | O(1)     | src/WheelTimer.h
+algo   | Add()    | Cancel() | Tick()   | impl
+--------------------------------------------------------
+最小堆 | O(log N) | O(log N) | O(1)     | src/PQTimer.h
+红黑树 | O(log N) | O(log N) | O(log N) | src/TreeTimer.h
+时间轮 | O(1)     | O(1)     | O(1)     | src/WheelTimer.h
 
 
 
