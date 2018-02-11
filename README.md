@@ -9,19 +9,23 @@
 * 使用premake生成Visual Studio解决方案或者makefile，如`premake5 vs2017`
 
 
-# 算法复杂度
-
-数据结构 | AddTimer | CancelTimer | Tick     | 实现文件
---------------------------------------------------------
-最小堆   | O(log N) |  O(log N)   | O(1)     | src/PQTimer.h
-红黑树   | O(log N) |  O(log N)   | O(log N) | src/TreeTimer.h
-时间轮   | O(1)     |  O(1)       | O(1)     | src/WheelTimer.h
-
-
 # 性能测试
+
+## 算法复杂度
+
+复杂度比较：
+
+algorithm | AddTimer() | CancelTimer() | Tick()   | implementation
+---------------------------------------------------------------
+最小堆    | O(log N)   | O(log N)      | O(1)     | src/PQTimer.h
+红黑树    | O(log N)   | O(log N)      | O(log N) | src/TreeTimer.h
+时间轮    | O(1)       | O(1)          | O(1)     | src/WheelTimer.h
+
+
 
 在一台 i3 4 Core 1.9GHz的Windows 7上的测试数据:
 
+```
 ============================================================================
 test\BenchTimer.cpp                              relative  time/iter  iters/s
 ============================================================================
@@ -37,10 +41,11 @@ TreeTimerTick                                                3.14us  318.55K
 PQTimerTick                                       98.41%     3.19us  313.48K
 WheelTimerTick                                    10.66%    29.44us   33.97K
 ============================================================================
+```
 
 
-测试出来的结果很让我意外，红黑树跟最小堆只有不到平均10%的性能差距，而时间轮的性能只有红黑树的20%，
-或许在于我的时间轮优化做的还不够好？
+测试表示红黑树跟最小堆只有不到平均10%的性能差距，而时间轮的性能只有红黑树的20%，
+或许在于我的时间轮没写对或者优化做的还不够好？
 
 ## TO-DO
 
