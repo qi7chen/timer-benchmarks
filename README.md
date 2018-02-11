@@ -15,12 +15,13 @@
 
 复杂度比较：
 
+```
 algo   | Add()    | Cancel() | Tick()   | impl
 --------------------------------------------------------
 最小堆 | O(log N) | O(log N) | O(1)     | src/PQTimer.h
 红黑树 | O(log N) | O(log N) | O(log N) | src/TreeTimer.h
 时间轮 | O(1)     | O(1)     | O(1)     | src/WheelTimer.h
-
+```
 
 
 在一台 i3 4 Core 1.9GHz的Windows 7上的测试数据:
