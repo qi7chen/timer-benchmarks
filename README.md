@@ -1,4 +1,4 @@
-# BenchmarkTimers
+# timerqueue-benchmark
 
 分别使用最小堆、红黑树、时间轮实现定时器，再对插入、删除、循环做性能测试。
 
