@@ -39,7 +39,7 @@ inline void benchTick(TimerQueueBase* timer, int n)
     }
 }
 
-BENCHMARK(PQTimerAdd, n)
+BENCHMARK(PQTimerAdd , n)
 {
     PQTimer timer;
     std::vector<int> ids;
@@ -137,6 +137,7 @@ BENCHMARK_RELATIVE(WheelTimerDel, n)
 
 BENCHMARK_DRAW_LINE()
 
+
 BENCHMARK(PQTimerTick, n)
 {
     PQTimer timer;
@@ -144,11 +145,11 @@ BENCHMARK(PQTimerTick, n)
 
     BENCHMARK_SUSPEND
     {
-        ids.reserve(n);
-        fillTimer(&timer, ids, n);
+        ids.reserve(MaxN);
+        fillTimer(&timer, ids, MaxN);
     }
 
-    benchTick(&timer, n);
+    benchTick(&timer, MaxN);
 
     doNotOptimizeAway(timer);
 }
@@ -160,11 +161,11 @@ BENCHMARK_RELATIVE(TreeTimerTick, n)
 
     BENCHMARK_SUSPEND
     {
-        ids.reserve(n);
-        fillTimer(&timer, ids, n);
+        ids.reserve(MaxN);
+        fillTimer(&timer, ids, MaxN);
     }
 
-    benchTick(&timer, n);
+    benchTick(&timer, MaxN);
 
     doNotOptimizeAway(timer);
 }
@@ -176,11 +177,11 @@ BENCHMARK_RELATIVE(WheelTimerTick, n)
 
     BENCHMARK_SUSPEND
     {
-        ids.reserve(n);
-        fillTimer(&timer, ids, n);
+        ids.reserve(MaxN);
+        fillTimer(&timer, ids, MaxN);
     }
 
-    benchTick(&timer, n);
+    benchTick(&timer, MaxN);
 
     doNotOptimizeAway(timer);
 }
