@@ -25,14 +25,23 @@ std::string Clock::CurrentTimeString(int64_t timepoint)
     return std::string(buffer, n);
 }
 
-uint64_t Clock::GetNowTickCount()
-{
 #ifdef _WIN32
+// get frequency of the performance counter
+uint64_t GetPCFrequency()
+{
     uint64_t freq = 0;
     if (!QueryPerformanceFrequency((LARGE_INTEGER*)&freq))
     {
         LOG(FATAL) << GetLastError();
     }
+    return freq;
+}
+#endif
+
+uint64_t Clock::GetNowTickCount()
+{
+#ifdef _WIN32
+    static uint64_t freq = GetPCFrequency();
     uint64_t now = 0;
     if (!QueryPerformanceCounter((LARGE_INTEGER*)&now))
     {
