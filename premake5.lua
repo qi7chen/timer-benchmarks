@@ -4,7 +4,8 @@
 
 solution 'BenchmarkTimers'
     configurations  {'Debug', 'Release'}
-    targetdir       'bin'
+    architecture 'x64'
+    targetdir    'bin'
     
     filter 'configurations:Debug'
         defines { 'DEBUG' }
