@@ -13,7 +13,7 @@
 // https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/kernel/timer.c?h=v3.2.98
 //
 // We model timers as the number of ticks until the next
-// due event.We allow 32 - bits of space to track this
+// due event. We allow 32-bits of space to track this
 // due interval, and break that into 4 regions of 8 bits.
 // Each region indexes into a bucket of 256 lists.
 //
@@ -38,9 +38,8 @@ class WheelTimer : public TimerQueueBase
 public:
     struct TimerNode
     {
-        // do lazy cancellation, so single linked list is enough
-        TimerNode* next = nullptr;
-        bool canceld = false;
+        TimerNode* next = nullptr;  // single linked list pointer
+        bool canceled = false;      // do lazy cancellation, so we dont need a `prev` pointer for double-linked list
         int id = -1;
         int64_t expires = 0;
         TimerCallback cb;
@@ -74,7 +73,10 @@ public:
 
     void Update() override;
 
-    int Size() const { return size_; }
+    int Size() const override 
+    { 
+        return size_; 
+    }
 
 private:
     void tick();
@@ -85,10 +87,9 @@ private:
     int nextCounter();
 
 private:
+    int size_ = 0;
     int64_t current_ = 0;
     int64_t jiffies_ = 0;
-    int size_ = 0;
     TimerList near_[TVN_SIZE];
     TimerList buckets_[WHEEL_BUCKETS][TVR_SIZE];
 };
-

@@ -135,7 +135,7 @@ bool WheelTimer::CancelTimer(int id)
     TimerNode* node =(TimerNode*)ref_[id];
     if (node != nullptr)
     {
-        node->canceld = true;
+        node->canceled = true;
         size_--;
         return true;
     }
@@ -182,7 +182,7 @@ void WheelTimer::tick()
     TimerNode* node = expired.head.next;
     while (node != nullptr)
     {
-        if (!node->canceld && node->cb)
+        if (!node->canceled && node->cb)
         {
             node->cb();
         }

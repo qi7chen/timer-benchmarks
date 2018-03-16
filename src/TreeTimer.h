@@ -28,14 +28,17 @@ public:
 
     void Update() override;
 
-    int Size() const { return (int)tree_.size(); }
+    int Size() const override 
+    { 
+        return (int)tree_.size(); 
+    }
 
 private:
     void clear();
     int nextCounter();
 
 private:
-    const int64_t twepoch; // custom epoch
-    std::multiset<TimerNode*> tree_;
+    const int64_t twepoch;                  // custom epoch
+    std::multiset<TimerNode*>   tree_;      // std::multiset as a red-black tree
 };
 
