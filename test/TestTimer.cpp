@@ -14,7 +14,6 @@ enum
 {
     ScheduleRange = 100,
     MaxTimeoutCount = 20,
-    TOLERANCE = 5, // fault torlerance
 };
 
 
@@ -37,12 +36,11 @@ static void onTimeout(TimerContext* ctx)
         int64_t elapsed = now - ctx->lastExpire;
         int64_t diff = elapsed - ctx->interval;
         EXPECT_GE(elapsed, ctx->interval);
-        EXPECT_LE(diff, ctx->interval + TOLERANCE);
     }
     ctx->lastExpire = now;
 
     const std::string& timestamp = Clock::CurrentTimeString(now);
-    //printf("%s timer[%d] expired of %d\n", timestamp.c_str(), ctx->id, ctx->timeoutCount);
+    printf("%s timer[%d] expired of %d\n", timestamp.c_str(), ctx->id, ctx->timeoutCount);
 
     if (ctx->timeoutCount < MaxTimeoutCount)
     {
@@ -71,15 +69,23 @@ static void TestTimerQueue(TimerQueueBase* timer, int count)
         //printf("schedule timer %d of interval %d\n", id, ctx->interval);
         //std::this_thread::sleep_for(std::chrono::milliseconds(ctx->interval/2));
     }
-    printf("all timers scheduled, %d\n", count);
+    for (int i = 0; i < count; i++)
+    {
+        if (count % 2 == 0)
+        {
+            timer->CancelTimer(i);
+        }
+    }
+    printf("all timers scheduled, %d\n", count / 2);
     while (timer->Size() > 0)
     {
         timer->Update();
-        //std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
 }
 
 #if 0
+
 TEST(TimerQueue, TestPQTimer)
 {
     PQTimer timer;

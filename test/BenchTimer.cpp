@@ -8,8 +8,9 @@
 #include "WheelTimer.h"
 #include "Clock.h"
 
+const int MaxN = 1000000;   // max node count
 
-inline void fillTimer(ITimerQueue* timer, std::vector<int>& vec, int n)
+inline void fillTimer(TimerQueueBase* timer, std::vector<int>& vec, int n)
 {
     auto dummy = []() {};
     for (int i = 0; i < n; i++)
@@ -19,7 +20,7 @@ inline void fillTimer(ITimerQueue* timer, std::vector<int>& vec, int n)
     }
 }
 
-inline void benchCancel(ITimerQueue* timer, std::vector<int>& ids, int n)
+inline void benchCancel(TimerQueueBase* timer, std::vector<int>& ids, int n)
 {
     for (int i = 0; i < n; i++)
     {
@@ -30,7 +31,7 @@ inline void benchCancel(ITimerQueue* timer, std::vector<int>& ids, int n)
     }
 }
 
-inline void benchTick(ITimerQueue* timer, int n)
+inline void benchTick(TimerQueueBase* timer, int n)
 {
     for (int i = 0; i < n; i++)
     {
@@ -38,112 +39,148 @@ inline void benchTick(ITimerQueue* timer, int n)
     }
 }
 
-
-BENCHMARK(TreeTimerAdd, n)
-{
-    TreeTimer timer;
-    std::vector<int> ids;
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(n);
-    }
-    fillTimer(&timer, ids, n);
-}
-
-BENCHMARK_RELATIVE(PQTimerAdd, n)
+BENCHMARK(PQTimerAdd, n)
 {
     PQTimer timer;
     std::vector<int> ids;
+
     BENCHMARK_SUSPEND
     {
-        ids.reserve(n);
+        ids.reserve(MaxN);
     }
-    fillTimer(&timer, ids, n);
+
+    fillTimer(&timer, ids, MaxN);
+
+    doNotOptimizeAway(timer);
+}
+
+BENCHMARK_RELATIVE(TreeTimerAdd, n)
+{
+    TreeTimer timer;
+    std::vector<int> ids;
+
+    BENCHMARK_SUSPEND
+    {
+        ids.reserve(MaxN);
+    }
+
+    fillTimer(&timer, ids, MaxN);
+
+    doNotOptimizeAway(timer);
 }
 
 BENCHMARK_RELATIVE(WheelTimerAdd, n)
 {
     WheelTimer timer;
     std::vector<int> ids;
+
     BENCHMARK_SUSPEND
     {
-        ids.reserve(n);
+        ids.reserve(MaxN);
     }
-    fillTimer(&timer, ids, n);
+
+    fillTimer(&timer, ids, MaxN);
+
+    doNotOptimizeAway(timer);
 }
 
 BENCHMARK_DRAW_LINE()
 
-BENCHMARK(TreeTimerDel, n)
-{
-    TreeTimer timer;
-    std::vector<int> ids;
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(n);
-        fillTimer(&timer, ids, n);
-    }
-    benchCancel(&timer, ids, n);
-}
 
-BENCHMARK_RELATIVE(PQTimerDel, n)
+BENCHMARK(PQTimerDel, n)
 {
     PQTimer timer;
     std::vector<int> ids;
+
     BENCHMARK_SUSPEND
     {
-        ids.reserve(n);
-        fillTimer(&timer, ids, n);
+        ids.reserve(MaxN);
+        fillTimer(&timer, ids, MaxN);
     }
-    benchCancel(&timer, ids, n);
+
+    benchCancel(&timer, ids, MaxN);
+
+    doNotOptimizeAway(timer);
+}
+
+BENCHMARK_RELATIVE(TreeTimerDel, n)
+{
+    TreeTimer timer;
+    std::vector<int> ids;
+
+    BENCHMARK_SUSPEND
+    {
+        ids.reserve(MaxN);
+        fillTimer(&timer, ids, MaxN);
+    }
+
+    benchCancel(&timer, ids, MaxN);
+
+    doNotOptimizeAway(timer);
 }
 
 BENCHMARK_RELATIVE(WheelTimerDel, n)
 {
     WheelTimer timer;
     std::vector<int> ids;
+
     BENCHMARK_SUSPEND
     {
-        ids.reserve(n);
-        fillTimer(&timer, ids, n);
+        ids.reserve(MaxN);
+        fillTimer(&timer, ids, MaxN);
     }
-    benchCancel(&timer, ids, n);
+
+    benchCancel(&timer, ids, MaxN);
+
+    doNotOptimizeAway(timer);
 }
 
 BENCHMARK_DRAW_LINE()
 
-BENCHMARK(TreeTimerTick, n)
-{
-    TreeTimer timer;
-    std::vector<int> ids;
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(n);
-        fillTimer(&timer, ids, n);
-    }
-    benchTick(&timer, n);
-}
-
-BENCHMARK_RELATIVE(PQTimerTick, n)
+BENCHMARK(PQTimerTick, n)
 {
     PQTimer timer;
     std::vector<int> ids;
+
     BENCHMARK_SUSPEND
     {
         ids.reserve(n);
         fillTimer(&timer, ids, n);
     }
+
     benchTick(&timer, n);
+
+    doNotOptimizeAway(timer);
+}
+
+BENCHMARK_RELATIVE(TreeTimerTick, n)
+{
+    TreeTimer timer;
+    std::vector<int> ids;
+
+    BENCHMARK_SUSPEND
+    {
+        ids.reserve(n);
+        fillTimer(&timer, ids, n);
+    }
+
+    benchTick(&timer, n);
+
+    doNotOptimizeAway(timer);
 }
 
 BENCHMARK_RELATIVE(WheelTimerTick, n)
 {
     WheelTimer timer;
     std::vector<int> ids;
+
     BENCHMARK_SUSPEND
     {
         ids.reserve(n);
         fillTimer(&timer, ids, n);
     }
+
     benchTick(&timer, n);
+
+    doNotOptimizeAway(timer);
 }
