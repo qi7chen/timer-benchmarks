@@ -4,6 +4,16 @@
 
 #include "TimerQueueBase.h"
 
+TimerQueueBase::TimerQueueBase()
+{
+    // reserve a little space
+    ref_.rehash(64);
+}
+
+TimerQueueBase::~TimerQueueBase()
+{
+}
+
 int TimerQueueBase::nextCounter()
 {
     int next = counter_ + 1;

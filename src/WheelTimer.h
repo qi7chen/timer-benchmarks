@@ -31,6 +31,10 @@ enum
     TVR_SIZE = (1 << TVR_BITS),     // wheel slots of vector
     TVN_MASK = (TVN_SIZE - 1),      //
     TVR_MASK = (TVR_SIZE - 1),      //
+
+    MAX_TVAL = ((uint64_t)((1ULL << (TVR_BITS + 4 * TVN_BITS)) - 1)),
+
+    TIME_UNIT = int64_t(1e7),       // centisecond, i.e. 1/100 second
 };
 
 class WheelTimer : public TimerQueueBase
@@ -84,7 +88,6 @@ private:
     bool cascadeTimers(int bucket, int index);
     void clearList(TimerList* list);
     void clearAll();
-    int nextCounter();
 
 private:
     int size_ = 0;

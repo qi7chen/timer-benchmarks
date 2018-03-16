@@ -35,7 +35,6 @@ public:
 
 private:
     void clear();
-    int nextCounter();
 
 private:
     const int64_t twepoch;                  // custom epoch

@@ -15,8 +15,8 @@ typedef std::function<void()> TimerCallback;
 class TimerQueueBase
 {
 public:
-    TimerQueueBase() {}
-    ~TimerQueueBase() {}
+    TimerQueueBase();
+    virtual ~TimerQueueBase();
 
     TimerQueueBase(const TimerQueueBase&) = delete;
     TimerQueueBase& operator=(const TimerQueueBase&) = delete;

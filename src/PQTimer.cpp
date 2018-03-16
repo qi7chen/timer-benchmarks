@@ -20,8 +20,7 @@ PQTimer::PQTimer()
     : twepoch(Clock::CurrentTimeMillis())
 {
     // reserve a little space
-    ref_.rehash(16);
-    heap_.reserve(16);
+    heap_.reserve(64);
 }
 
 

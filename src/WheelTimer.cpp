@@ -6,13 +6,11 @@
 #include "Clock.h"
 #include "Logging.h"
 
-const int64_t TIME_UNIT = int64_t(1e7);       // centisecond, i.e. 1/100 second
-const uint64_t MAX_TVAL = ((uint64_t)((1ULL << (TVR_BITS + 4 * TVN_BITS)) - 1));
+
 
 WheelTimer::WheelTimer()
-    :current_(Clock::GetNowTickCount())
+    : current_(Clock::GetNowTickCount())
 {
-    ref_.rehash(32);
 }
 
 
@@ -50,27 +48,10 @@ void WheelTimer::clearAll()
     ref_.clear();
 }
 
-int WheelTimer::nextCounter()
-{
-    int next = counter_ + 1;
-    for (;;)
-    {
-        next = next < 0 ? 0 : next;
-        if (ref_.count(next) > 0)
-        {
-            next++;
-            continue;
-        }
-        break;
-    }
-    counter_ = next;
-    return next;
-}
-
 void WheelTimer::addTimerNode(TimerNode* node)
 {
     int64_t expires = node->expires;
-    int64_t idx = expires - jiffies_;
+    uint64_t idx = (uint64_t)(expires - jiffies_);
     TimerList* list = nullptr;
     if (idx < TVR_SIZE) // [0, 0x100)
     {     
@@ -92,7 +73,7 @@ void WheelTimer::addTimerNode(TimerNode* node)
         int i = (expires >> (TVR_BITS + 2 * TVN_BITS)) & TVN_MASK;
         list = &buckets_[2][i];
     }
-    else if (idx < 0)
+    else if ((int64_t)idx < 0)
     {
         // Can happen if you add a timer with expires == jiffies,
         // or you set a timer to go off in the past
@@ -122,7 +103,7 @@ int WheelTimer::AddTimer(uint32_t time, TimerCallback cb)
     TimerNode* node = new TimerNode;
     node->cb = cb;
     node->expires = jiffies_ + time;
-    node->id = ++counter_;
+    node->id = nextCounter();
     addTimerNode(node);
     ref_[node->id] = node;
     size_++;
