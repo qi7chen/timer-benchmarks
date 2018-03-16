@@ -90,9 +90,9 @@ int PQTimer::AddTimer(uint32_t time, TimerCallback cb)
     node->id = nextCounter();
     node->expires = expire;
     node->cb = cb;
-    node->index = heap_.size();
+    node->index = (int)heap_.size();
     heap_.push_back(node);
-    siftup(heap_.size() - 1);
+    siftup((int)heap_.size() - 1);
     ref_[node->id] = node;
     return node->id;
 }
