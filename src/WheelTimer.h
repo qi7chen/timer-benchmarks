@@ -5,6 +5,7 @@
 #pragma once
 
 #include "TimerQueueBase.h"
+#include <list>
 #include <unordered_map>
 
 // timer queue implemented with hashed hierarchical wheel.
@@ -42,30 +43,13 @@ class WheelTimer : public TimerQueueBase
 public:
     struct TimerNode
     {
-        TimerNode* next = nullptr;  // single linked list pointer
-        bool canceled = false;      // do lazy cancellation, so we dont need a `prev` pointer for double-linked list
+        bool canceled = false;  // do lazy cancellation
         int id = -1;
         int64_t expires = 0;
         TimerCallback cb;
     };
 
-    struct TimerList
-    {
-        TimerNode head;
-        TimerNode* tail = nullptr;
-        int count = 0; // debugging
-
-        TimerList()
-        {
-            tail = &head;
-        }
-
-        void reset()
-        {
-            tail = &head;
-            count = 0;
-        }
-    };
+    typedef std::list<TimerNode*> TimerList;
 
 public:
     WheelTimer();
@@ -86,7 +70,7 @@ private:
     void tick();
     void addTimerNode(TimerNode* node);
     bool cascadeTimers(int bucket, int index);
-    void clearList(TimerList* list);
+    void clearList(TimerList& list);
     void clearAll();
 
 private:

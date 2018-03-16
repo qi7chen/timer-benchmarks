@@ -5,6 +5,7 @@
 #include "WheelTimer.h"
 #include "Clock.h"
 #include "Logging.h"
+#include <assert.h>
 
 
 
@@ -19,30 +20,26 @@ WheelTimer::~WheelTimer()
     clearAll();
 }
 
-void WheelTimer::clearList(TimerList* list)
+void WheelTimer::clearList(TimerList& list)
 {
-    TimerNode* node = list->head.next;
-    while (node != nullptr)
+    for (auto ptr : list)
     {
-        ref_.erase(node->id);
-        TimerNode* todel = node;
-        node = node->next;
-        delete todel;
+        delete ptr;
     }
-    list->reset();
+    list.clear();
 }
 
 void WheelTimer::clearAll()
 {
     for (int i = 0; i < TVN_SIZE; i++)
     {
-        clearList(&near_[i]);
+        clearList(near_[i]);
     }
     for (int i = 0; i < WHEEL_BUCKETS; i++)
     {
         for (int j = 0; j < TVR_SIZE; j++)
         {
-            clearList(&buckets_[i][j]);
+            clearList(buckets_[i][j]);
         }
     }
     ref_.clear();
@@ -93,9 +90,7 @@ void WheelTimer::addTimerNode(TimerNode* node)
         list = &buckets_[3][i];
     }
     // add to linked list
-    list->tail->next = node;
-    list->tail = node;
-    list->count++;
+    list->push_back(node);
 }
 
 int WheelTimer::AddTimer(uint32_t time, TimerCallback cb)
@@ -127,14 +122,12 @@ bool WheelTimer::CancelTimer(int id)
 bool WheelTimer::cascadeTimers(int bucket, int index)
 {
     // swap list
-    TimerList list = buckets_[bucket][index];
-    buckets_[bucket][index].reset();
+    TimerList list;
+    buckets_[bucket][index].swap(list);
 
-    TimerNode* node = list.head.next;
-    while (node != nullptr)
+    for (auto node : list)
     {
         addTimerNode(node);
-        node = node->next;
     }
     return index == 0;
 }
@@ -157,21 +150,19 @@ void WheelTimer::tick()
     ++jiffies_;
 
     // swap list
-    TimerList expired = near_[index];
-    near_[index].reset();
+    TimerList expired;
+    near_[index].swap(expired);
 
-    TimerNode* node = expired.head.next;
-    while (node != nullptr)
+    for (auto node : expired)
     {
         if (!node->canceled && node->cb)
         {
             node->cb();
+            size_--;
         }
-        size_--;
+        
         ref_.erase(node->id);
-        TimerNode* todel = node;
-        node = node->next;
-        delete todel;
+        delete node;
     }
 }
 
@@ -185,11 +176,14 @@ void WheelTimer::Update()
     }
     else if (now >= current_)
     {
-        int64_t diff = (now - current_) / TIME_UNIT;
-        current_ = now;
-        for (int i = 0; i < diff; i++)
+        int64_t ticks = (now - current_) / TIME_UNIT;
+        if (ticks > 0)
         {
-            tick();
+            current_ = now;
+            for (int i = 0; i < ticks; i++)
+            {
+                tick();
+            }
         }
     }
 }
