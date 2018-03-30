@@ -11,7 +11,7 @@
 // timer queue implemented with red-black tree.
 // complexity:
 //      AddTimer   CancelTimer   PerTick
-//       O(log N)   O(log N)      O(log N)
+//       O(log N)   O(N)          O(log N)
 //
 class TreeTimer : public TimerQueueBase
 {
@@ -47,7 +47,7 @@ private:
     void clear();
 
 private:
-    const int64_t twepoch;                  // custom epoch
+    const int64_t               twepoch;    // custom epoch
     std::multiset<TimerNode>    tree_;      // std::multiset as a red-black tree
 };
 
