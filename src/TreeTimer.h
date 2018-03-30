@@ -16,7 +16,17 @@
 class TreeTimer : public TimerQueueBase
 {
 public:
-    struct TimerNode;
+    struct TimerNode
+    {
+        int id = -1;
+        int64_t expires = 0;
+        TimerCallback cb;
+
+        bool operator < (const TimerNode& b) const
+        {
+            return expires < b.expires;
+        }
+    };
 
 public:
     TreeTimer();
@@ -38,6 +48,6 @@ private:
 
 private:
     const int64_t twepoch;                  // custom epoch
-    std::multiset<TimerNode*>   tree_;      // std::multiset as a red-black tree
+    std::multiset<TimerNode>    tree_;      // std::multiset as a red-black tree
 };
 
