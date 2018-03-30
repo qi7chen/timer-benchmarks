@@ -6,6 +6,7 @@
 #include <chrono>
 #ifdef _WIN32
 #include <Windows.h>
+#define snprintf sprintf_s
 #endif
 #include "Logging.h"
 
