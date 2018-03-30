@@ -13,12 +13,18 @@
 //
 // complexity:
 //     AddTimer    CancelTimer   PerTick
-//      O(log N)    O(log N)       O(1)
+//      O(log N)    O(N)          O(1)
 //
 class PQTimer : public TimerQueueBase
 {
 public:
-    struct TimerNode;
+    struct TimerNode
+    {
+        int index = -1;
+        int id = -1;
+        int64_t expires = 0;
+        TimerCallback cb;
+    };
 
 public:
     PQTimer();
@@ -41,6 +47,6 @@ private:
     void siftup(int j);
 
 private:
-    const int64_t twepoch;              // custom epoch
-    std::vector<TimerNode*> heap_;      // min-heap
+    const int64_t           twepoch;    // custom epoch
+    std::vector<TimerNode>  heap_;      // min-heap
 };
