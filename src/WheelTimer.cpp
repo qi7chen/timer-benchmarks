@@ -105,7 +105,7 @@ int WheelTimer::AddTimer(uint32_t time, TimerCallback cb)
     return node->id;
 }
 
-// Do lazy cancellation, so single linked list is enough
+// Do lazy cancellation
 bool WheelTimer::CancelTimer(int id)
 {
     TimerNode* node =(TimerNode*)ref_[id];
