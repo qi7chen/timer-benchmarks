@@ -8,7 +8,7 @@
 #include "WheelTimer.h"
 #include "Clock.h"
 
-const int MaxN = 500000;   // max node count
+const int MaxN = 100000;   // max node count
 
 inline void fillTimer(TimerQueueBase* timer, std::vector<int>& vec, int n)
 {
