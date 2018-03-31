@@ -3,31 +3,39 @@
 // See accompanying files LICENSE.
 
 #include "Benchmark.h"
+#include <algorithm>
 #include "PQTimer.h"
 #include "TreeTimer.h"
 #include "WheelTimer.h"
 #include "Clock.h"
 
-const int MaxN = 100000;   // max node count
 
-inline void fillTimer(TimerQueueBase* timer, std::vector<int>& vec, int n)
+const int MaxN = 50000;   // max node count
+
+// Add timer with random duration 
+inline void fillTimer(TimerQueueBase* timer, std::vector<int>& ids, int n)
 {
-    auto dummy = []() {};
+    std::vector<int> durations;
     for (int i = 0; i < n; i++)
     {
-        int id = timer->AddTimer(i, dummy);
-        vec.push_back(id);
+        durations.push_back(i);
+    }
+    std::random_shuffle(durations.begin(), durations.end());
+    auto dummy = []() {};
+    for (int i = 0; i < (int)durations.size(); i++)
+    {
+        int id = timer->AddTimer(durations[i], dummy);
+        ids.push_back(id);
     }
 }
 
-inline void benchCancel(TimerQueueBase* timer, std::vector<int>& ids, int n)
+// Cancel timers with random timer id
+inline void benchCancel(TimerQueueBase* timer, std::vector<int>& ids)
 {
-    for (int i = 0; i < n; i++)
+    std::random_shuffle(ids.begin(), ids.end());
+    for (int i = 0; i < (int)ids.size(); i++)
     {
-        if (i < (int)ids.size())
-        {
-            timer->CancelTimer(ids[i]);
-        }
+        timer->CancelTimer(ids[i]);
     }
 }
 
@@ -98,7 +106,7 @@ BENCHMARK(PQTimerDel, n)
         fillTimer(&timer, ids, MaxN);
     }
 
-    benchCancel(&timer, ids, MaxN);
+    benchCancel(&timer, ids);
 
     doNotOptimizeAway(timer);
 }
@@ -114,7 +122,7 @@ BENCHMARK_RELATIVE(TreeTimerDel, n)
         fillTimer(&timer, ids, MaxN);
     }
 
-    benchCancel(&timer, ids, MaxN);
+    benchCancel(&timer, ids);
 
     doNotOptimizeAway(timer);
 }
@@ -130,7 +138,7 @@ BENCHMARK_RELATIVE(WheelTimerDel, n)
         fillTimer(&timer, ids, MaxN);
     }
 
-    benchCancel(&timer, ids, MaxN);
+    benchCancel(&timer, ids);
 
     doNotOptimizeAway(timer);
 }
