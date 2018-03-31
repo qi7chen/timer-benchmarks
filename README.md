@@ -18,29 +18,50 @@
 ```
 algo   | Add()    | Cancel() | Tick()   | impl
 --------------------------------------------------------
-最小堆 | O(log N) | O(log N) | O(1)     | src/PQTimer.h
-红黑树 | O(log N) | O(log N) | O(log N) | src/TreeTimer.h
+最小堆 | O(log N) | O(N) | O(1)     | src/PQTimer.h
+红黑树 | O(log N) | O(N) | O(log N) | src/TreeTimer.h
 时间轮 | O(1)     | O(1)     | O(1)     | src/WheelTimer.h
 ```
 
+最小堆和红黑树的Cancel算法均使用for遍历找到id做删除，所以都是O(N)复杂度。
 
-在一台 i5-7500 4 Core 3.4GHz的Windows 10上的测试数据(100w次操作): 
+
 
 ```
+E5 2.3GHz CentOS 7
+============================================================================
+test/BenchTimer.cpp                              relative  time/iter  iters/s
+============================================================================
+PQTimerAdd                                                 766.66ms     1.30
+TreeTimerAdd                                      58.56%      1.31s  763.80m
+WheelTimerAdd                                    208.50%   367.70ms     2.72
+----------------------------------------------------------------------------
+PQTimerDel                                                 382.66ms     2.61
+TreeTimerDel                                     129.61%   295.24ms     3.39
+WheelTimerDel                                    242.69%   157.67ms     6.34
+----------------------------------------------------------------------------
+PQTimerTick                                                566.14ms     1.77
+TreeTimerTick                                     78.72%   719.17ms     1.39
+WheelTimerTick                                    88.99%   636.17ms     1.57
+============================================================================
+```
+
+```
+i3 1.9GHz Windows 7
 ============================================================================
 test\BenchTimer.cpp                              relative  time/iter  iters/s
 ============================================================================
-PQTimerAdd                                                 512.69ms     1.95
-TreeTimerAdd                                      67.33%   761.49ms     1.31
-WheelTimerAdd                                     93.30%   549.50ms     1.82
+PQTimerAdd                                                 161.07ms     6.21
+TreeTimerAdd                                      58.29%   276.30ms     3.62
+WheelTimerAdd                                     35.44%   454.42ms     2.20
 ----------------------------------------------------------------------------
-PQTimerDel                                                 410.34ms     2.44
-TreeTimerDel                                     110.79%   370.36ms     2.70
-WheelTimerDel                                    151.65%   270.57ms     3.70
+PQTimerDel                                                 271.24ms     3.69
+TreeTimerDel                                     517.92%    52.37ms    19.09
+WheelTimerDel                                    140.29%   193.34ms     5.17
 ----------------------------------------------------------------------------
-PQTimerTick                                                137.48ms     7.27
-TreeTimerTick                                     62.24%   220.88ms     4.53
-WheelTimerTick                                    78.41%   175.33ms     5.70
+PQTimerTick                                                 53.77ms    18.60
+TreeTimerTick                                     60.14%    89.41ms    11.19
+WheelTimerTick                                    45.62%   117.85ms     8.49
 ============================================================================
 ```
 
