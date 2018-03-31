@@ -34,18 +34,19 @@ E5 2.3GHz CentOS 7
 ============================================================================
 test/BenchTimer.cpp                              relative  time/iter  iters/s
 ============================================================================
-PQTimerAdd                                                  50.51ms    19.80
-TreeTimerAdd                                      68.42%    73.82ms    13.55
-WheelTimerAdd                                    207.81%    24.30ms    41.14
+PQTimerAdd                                                  54.28ms    18.42
+TreeTimerAdd                                      72.07%    75.32ms    13.28
+WheelTimerAdd                                    212.18%    25.58ms    39.09
 ----------------------------------------------------------------------------
-PQTimerDel                                                  10.27ms    97.40
-TreeTimerDel                                     198.55%     5.17ms   193.40
-WheelTimerDel                                    110.44%     9.30ms   107.57
+PQTimerDel                                                  34.70ms    28.82
+TreeTimerDel                                     667.01%     5.20ms   192.20
+WheelTimerDel                                    383.55%     9.05ms   110.52
 ----------------------------------------------------------------------------
-PQTimerTick                                                 41.57ms    24.06
-TreeTimerTick                                     90.57%    45.90ms    21.79
-WheelTimerTick                                    82.97%    50.10ms    19.96
+PQTimerTick                                                 41.90ms    23.87
+TreeTimerTick                                     92.85%    45.12ms    22.16
+WheelTimerTick                                    83.76%    50.02ms    19.99
 ============================================================================
+
 ```
 
 ```
@@ -53,17 +54,17 @@ i3 1.9GHz Windows 7
 ============================================================================
 test\BenchTimer.cpp                              relative  time/iter  iters/s
 ============================================================================
-PQTimerAdd                                                  30.15ms    33.17
-TreeTimerAdd                                      61.09%    49.35ms    20.26
-WheelTimerAdd                                     41.45%    72.73ms    13.75
+PQTimerAdd                                                  32.89ms    30.41
+TreeTimerAdd                                      63.83%    51.52ms    19.41
+WheelTimerAdd                                     42.58%    77.24ms    12.95
 ----------------------------------------------------------------------------
-PQTimerDel                                                  43.77ms    22.85
-TreeTimerDel                                     416.63%    10.51ms    95.19
-WheelTimerDel                                    147.84%    29.60ms    33.78
+PQTimerDel                                                 103.45ms     9.67
+TreeTimerDel                                      1.04K%     9.92ms   100.80
+WheelTimerDel                                    340.81%    30.35ms    32.95
 ----------------------------------------------------------------------------
-PQTimerTick                                                 10.87ms    91.98
-TreeTimerTick                                     61.05%    17.81ms    56.15
-WheelTimerTick                                    50.78%    21.41ms    46.71
+PQTimerTick                                                 10.94ms    91.45
+TreeTimerTick                                     61.18%    17.87ms    55.95
+WheelTimerTick                                    47.65%    22.95ms    43.57
 ============================================================================
 ```
 
