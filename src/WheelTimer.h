@@ -79,4 +79,5 @@ private:
     int64_t jiffies_ = 0;
     TimerList near_[TVN_SIZE];
     TimerList buckets_[WHEEL_BUCKETS][TVR_SIZE];
+    std::unordered_map<int, TimerNode*> ref_;       // make O(1) searching
 };

@@ -36,6 +36,5 @@ public:
 protected:
     int nextCounter();
 
-    int counter_ = 0;                       // next timer id
-    std::unordered_map<int, void*> ref_;    // keep a hash reference to id, make O(1) searching
+    int counter_ = 0;   // next timer id
 };

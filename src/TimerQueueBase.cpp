@@ -6,27 +6,14 @@
 
 TimerQueueBase::TimerQueueBase()
 {
-    // reserve a little space
-    ref_.rehash(64);
 }
 
 TimerQueueBase::~TimerQueueBase()
 {
 }
 
+// we assume you won't have too much timer in the same time
 int TimerQueueBase::nextCounter()
 {
-    int next = counter_ + 1;
-    for (;;)
-    {
-        next = next < 0 ? 0 : next;
-        if (ref_.count(next) > 0)
-        {
-            next++;
-            continue;
-        }
-        break;
-    }
-    counter_ = next;
-    return next;
+    return counter_++;
 }

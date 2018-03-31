@@ -12,6 +12,7 @@
 WheelTimer::WheelTimer()
     : current_(Clock::GetNowTickCount())
 {
+    ref_.rehash(64); // reserve a little space
 }
 
 
@@ -108,7 +109,7 @@ int WheelTimer::AddTimer(uint32_t time, TimerCallback cb)
 // Do lazy cancellation
 bool WheelTimer::CancelTimer(int id)
 {
-    TimerNode* node =(TimerNode*)ref_[id];
+    TimerNode* node = ref_[id];
     if (node != nullptr)
     {
         node->canceled = true;

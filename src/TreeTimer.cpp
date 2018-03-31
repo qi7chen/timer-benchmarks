@@ -20,7 +20,6 @@ TreeTimer::~TreeTimer()
 void TreeTimer::clear()
 {
     tree_.clear();
-    ref_.clear();
 }
 
 int TreeTimer::AddTimer(uint32_t time, TimerCallback cb)

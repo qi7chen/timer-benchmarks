@@ -21,7 +21,6 @@ PQTimer::~PQTimer()
 void PQTimer::clear()
 {
     heap_.clear();
-    ref_.clear();
 }
 
 #define HEAP_ITEM_LESS(i, j) (heap_[(i)].expires < heap_[(j)].expires)
@@ -83,26 +82,27 @@ int PQTimer::AddTimer(uint32_t time, TimerCallback cb)
     return node.id;
 }
 
+// This operation is O(n) complexity
 bool PQTimer::CancelTimer(int id)
 {
-    TimerNode* node = (TimerNode*)ref_[id];
-    if (node != nullptr)
+    for (int idx = 0; idx < (int)heap_.size(); idx++)
     {
-        int n = (int)heap_.size() - 1;
-        int i = node->index;
-        if (i != n)
+        if (heap_[idx].id == id)
         {
-            std::swap(heap_[i], heap_[n]);
-            heap_[i].index = i;
-            if (!siftdown(i, n))
+            int n = (int)heap_.size() - 1;
+            int i = heap_[idx].index;
+            if (i != n)
             {
-                siftup(i);
+                std::swap(heap_[i], heap_[n]);
+                heap_[i].index = i;
+                if (!siftdown(i, n))
+                {
+                    siftup(i);
+                }
             }
+            heap_.pop_back();
+            return true;
         }
-        heap_.pop_back();
-        ref_.erase(id);
-        delete node;
-        return true;
     }
     return false;
 }
