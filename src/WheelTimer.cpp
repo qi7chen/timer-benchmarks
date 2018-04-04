@@ -8,11 +8,11 @@
 #include <assert.h>
 
 
-
 WheelTimer::WheelTimer()
     : current_(Clock::GetNowTickCount())
 {
-    ref_.rehash(64); // reserve a little space
+    ref_.rehash(64);            // reserve a little space
+    free_list_.reserve(1024);   // max free list item count
 }
 
 
@@ -44,6 +44,32 @@ void WheelTimer::clearAll()
         }
     }
     ref_.clear();
+}
+
+WheelTimer::TimerNode* WheelTimer::allocNode()
+{
+    TimerNode* node = nullptr;
+    if (free_list_.size() > 0)
+    {
+        node = free_list_.back();
+    }
+    else
+    {
+        node = new TimerNode;
+    }
+    return node;
+}
+
+void WheelTimer::freeNode(TimerNode* node)
+{
+    if (free_list_.size() < free_list_.capacity())
+    {
+        free_list_.push_back(node);
+    } 
+    else 
+    {
+        delete node;
+    }
 }
 
 void WheelTimer::addTimerNode(TimerNode* node)
@@ -96,7 +122,8 @@ void WheelTimer::addTimerNode(TimerNode* node)
 
 int WheelTimer::AddTimer(uint32_t time, TimerCallback cb)
 {
-    TimerNode* node = new TimerNode;
+    TimerNode* node = allocNode();
+    node->canceled = false;
     node->cb = cb;
     node->expires = jiffies_ + time;
     node->id = nextCounter();

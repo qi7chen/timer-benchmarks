@@ -5,7 +5,7 @@
 #pragma once
 
 #include "TimerQueueBase.h"
-#include <list>
+#include <vector>
 #include <unordered_map>
 
 // timer queue implemented with hashed hierarchical wheel.
@@ -49,7 +49,7 @@ public:
         TimerCallback cb;
     };
 
-    typedef std::list<TimerNode*> TimerList;
+    typedef std::vector<TimerNode*> TimerList;
 
 public:
     WheelTimer();
@@ -72,6 +72,8 @@ private:
     bool cascadeTimers(int bucket, int index);
     void clearList(TimerList& list);
     void clearAll();
+    TimerNode* allocNode();
+    void freeNode(TimerNode*);
 
 private:
     int size_ = 0;
@@ -80,4 +82,5 @@ private:
     TimerList near_[TVN_SIZE];
     TimerList buckets_[WHEEL_BUCKETS][TVR_SIZE];
     std::unordered_map<int, TimerNode*> ref_;       // make O(1) searching
+    std::vector<TimerNode*>   free_list_;
 };
