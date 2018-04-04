@@ -133,7 +133,7 @@ int WheelTimer::AddTimer(uint32_t time, TimerCallback cb)
     return node->id;
 }
 
-// Do lazy cancellation
+// Do lazy cancellation, so we can effectively use vector as container of timer nodes
 bool WheelTimer::CancelTimer(int id)
 {
     TimerNode* node = ref_[id];

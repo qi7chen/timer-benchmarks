@@ -34,18 +34,19 @@ E5 2.3GHz CentOS 7 GCC 5.3
 ============================================================================
 test/BenchTimer.cpp                              relative  time/iter  iters/s
 ============================================================================
-PQTimerAdd                                                  28.95ms    34.54
-TreeTimerAdd                                      72.39%    40.00ms    25.00
-WheelTimerAdd                                    190.25%    15.22ms    65.71
+PQTimerAdd                                                  28.44ms    35.17
+TreeTimerAdd                                      71.02%    40.04ms    24.97
+WheelTimerAdd                                    293.08%     9.70ms   103.07
 ----------------------------------------------------------------------------
-PQTimerDel                                                 873.13ms     1.15
-TreeTimerDel                                       5.23%     16.69s   59.92m
-WheelTimerDel                                     9.66K%     9.04ms   110.61
+PQTimerDel                                                 850.45ms     1.18
+TreeTimerDel                                       5.09%     16.71s   59.83m
+WheelTimerDel                                    15.19K%     5.60ms   178.65
 ----------------------------------------------------------------------------
-PQTimerTick                                                 21.50ms    46.51
-TreeTimerTick                                     86.37%    24.89ms    40.17
-WheelTimerTick                                    73.83%    29.12ms    34.34
+PQTimerTick                                                 21.11ms    47.38
+TreeTimerTick                                     86.90%    24.29ms    41.17
+WheelTimerTick                                    84.62%    24.94ms    40.09
 ============================================================================
+
 
 
 ```
@@ -53,19 +54,19 @@ WheelTimerTick                                    73.83%    29.12ms    34.34
 ```
 i5 3.4GHz Windows 10 Visual C++ 15
 ============================================================================
-test\BenchTimer.cpp                              relative  time/iter  iters/s
+test\benchtimer.cpp                             relative  time/iter  iters/s
 ============================================================================
-PQTimerAdd                                                  12.21ms    81.90
-TreeTimerAdd                                      54.30%    22.49ms    44.47
-WheelTimerAdd                                     58.86%    20.75ms    48.20
+PQTimerAdd                                                  12.27ms    81.51
+TreeTimerAdd                                      54.89%    22.35ms    44.74
+WheelTimerAdd                                     70.70%    17.35ms    57.63
 ----------------------------------------------------------------------------
-PQTimerDel                                                 675.82ms     1.48
-TreeTimerDel                                       5.17%     13.08s   76.48m
-WheelTimerDel                                     6.40K%    10.56ms    94.68
+PQTimerDel                                                 706.29ms     1.42
+TreeTimerDel                                       5.12%     13.81s   72.43m
+WheelTimerDel                                     8.07K%     8.75ms   114.23
 ----------------------------------------------------------------------------
-PQTimerTick                                                  1.32ms   757.94
-TreeTimerTick                                     40.09%     3.29ms   303.88
-WheelTimerTick                                    21.02%     6.28ms   159.29
+PQTimerTick                                                  1.37ms   728.89
+TreeTimerTick                                     38.55%     3.56ms   280.97
+WheelTimerTick                                    30.36%     4.52ms   221.31
 ============================================================================
 ```
 
@@ -81,5 +82,4 @@ WheelTimerTick                                    21.02%     6.28ms   159.29
 
 ## TO-DO
 
-* 时间轮实现还可以做内存优化
 * 集成[其它benchmark框架](https://github.com/google/benchmark)来跑性能数据
