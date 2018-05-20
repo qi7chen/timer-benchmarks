@@ -32,13 +32,13 @@ void WheelTimer::clearList(TimerList& list)
 
 void WheelTimer::clearAll()
 {
-    for (int i = 0; i < TVN_SIZE; i++)
+    for (int i = 0; i < TVR_SIZE; i++)
     {
         clearList(near_[i]);
     }
     for (int i = 0; i < WHEEL_BUCKETS; i++)
     {
-        for (int j = 0; j < TVR_SIZE; j++)
+        for (int j = 0; j < TVN_SIZE; j++)
         {
             clearList(buckets_[i][j]);
         }
