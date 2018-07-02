@@ -6,7 +6,6 @@
 #include "Clock.h"
 
 PQTimer::PQTimer()
-    : twepoch(Clock::CurrentTimeMillis())
 {
     // reserve a little space
     heap_.reserve(64);
@@ -71,7 +70,7 @@ void PQTimer::siftup(int j)
 
 int PQTimer::AddTimer(uint32_t time, TimerCallback cb)
 {
-    int64_t expire = Clock::CurrentTimeMillis() - twepoch + time;
+    int64_t expire = Clock::CurrentTimeMillis() + time;
     TimerNode node;
     node.id = nextCounter();
     node.expires = expire;
@@ -109,7 +108,7 @@ bool PQTimer::CancelTimer(int id)
 
 void PQTimer::Update()
 {
-    int64_t now = Clock::CurrentTimeMillis() - twepoch;
+    int64_t now = Clock::CurrentTimeMillis();
     while (!heap_.empty())
     {
         TimerNode& node = heap_.front();
@@ -117,14 +116,16 @@ void PQTimer::Update()
         {
             break;
         }
+        auto cb = std::move(node.cb);
         int n = (int)heap_.size() - 1;
         std::swap(heap_[0], heap_[n]);
         heap_[0].index = 0;
         siftdown(0, n);
         heap_.pop_back();
-        if (node.cb)
+
+        if (cb)
         {
-            node.cb();
+            cb();
         }
     }
 }

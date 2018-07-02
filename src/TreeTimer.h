@@ -47,7 +47,6 @@ private:
     void clear();
 
 private:
-    const int64_t               twepoch;    // custom epoch
-    std::multiset<TimerNode>    tree_;      // std::multiset as a red-black tree
+    std::multiset<TimerNode> tree_;  // std::multiset as a red-black tree
 };
 

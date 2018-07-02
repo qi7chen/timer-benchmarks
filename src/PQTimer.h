@@ -47,6 +47,5 @@ private:
     void siftup(int j);
 
 private:
-    const int64_t           twepoch;    // custom epoch
     std::vector<TimerNode>  heap_;      // min-heap
 };
