@@ -84,8 +84,6 @@ static void TestTimerQueue(TimerQueueBase* timer, int count)
     }
 }
 
-#if 0
-
 TEST(TimerQueue, TestPQTimer)
 {
     PQTimer timer;
@@ -103,4 +101,3 @@ TEST(TimerQueue, TestWheelTimer)
     WheelTimer timer;
     TestTimerQueue(&timer, 100);
 }
-#endif
