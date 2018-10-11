@@ -71,7 +71,7 @@ static void TestTimerQueue(TimerQueueBase* timer, int count)
     }
     for (int i = 0; i < count; i++)
     {
-        if (count % 2 == 0)
+        if (i % 2 == 0)
         {
             timer->CancelTimer(i);
         }
