@@ -46,17 +46,14 @@ bool TreeTimer::Cancel(int id)
     return false;
 }
 
-int TreeTimer::Update(int64_t now)
+int TreeTimer::Update()
 {
     if (tree_.empty())
     {
         return 0;
     }
     int fired = 0;
-    if (now == 0)
-    {
-        now = Clock::CurrentTimeMillis();
-    }
+    int64_t now = Clock::CurrentTimeMillis();
     while (!tree_.empty())
     {
         auto iter = tree_.begin();

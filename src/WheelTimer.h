@@ -59,7 +59,7 @@ public:
 
     bool Cancel(int id) override;
 
-    int Update(int64_t now) override;
+    int Update() override;
 
     int Size() const override 
     { 

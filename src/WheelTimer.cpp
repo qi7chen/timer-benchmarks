@@ -196,16 +196,13 @@ int WheelTimer::tick()
     return fired;
 }
 
-int WheelTimer::Update(int64_t now)
+int WheelTimer::Update()
 {
-    if (now == 0)
-    {
-        now = Clock::GetNowTickCount();
-    }
+    int64_t now = Clock::GetNowTickCount();
     if (now < current_)
     {
-        LOG(ERROR) << "time go backwards: " << now << ", " << current_;
-        return 0;
+        assert(false && "time go backwards");
+        return -1;
     }
     else if (now >= current_)
     {
