@@ -29,7 +29,7 @@ public:
     virtual bool Cancel(int id) = 0;
 
     // per-tick bookkeeping.
-    virtual int Update() = 0;
+    virtual int Update(int64_t now = 0) = 0;
 
     // count of timers not fired
     virtual int Size() const = 0;

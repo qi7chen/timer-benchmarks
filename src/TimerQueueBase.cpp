@@ -15,5 +15,5 @@ TimerQueueBase::~TimerQueueBase()
 // we assume you won't have too much timer in the same time
 int TimerQueueBase::nextCounter()
 {
-    return counter_++;
+    return ++counter_;
 }

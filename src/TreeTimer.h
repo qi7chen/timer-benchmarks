@@ -36,7 +36,7 @@ public:
 
     bool Cancel(int id) override;
 
-    int Update() override;
+    int Update(int64_t now = 0) override;
 
     int Size() const override 
     { 

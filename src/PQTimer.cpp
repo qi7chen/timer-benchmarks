@@ -106,14 +106,16 @@ bool PQTimer::Cancel(int id)
     return false;
 }
 
-int PQTimer::Update()
+int PQTimer::Update(int64_t now)
 {
     if (heap_.empty())
     {
         return 0;
     }
-
-    int64_t now = Clock::CurrentTimeMillis();
+    if (now == 0)
+    {
+        now = Clock::CurrentTimeMillis();
+    }
     int fired = 0;
     while (!heap_.empty())
     {
