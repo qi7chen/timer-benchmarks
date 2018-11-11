@@ -68,9 +68,9 @@ void PQTimer::siftup(int j)
     }
 }
 
-int PQTimer::AddTimer(uint32_t time, TimerCallback cb)
+int PQTimer::RunAfter(uint32_t milsec, TimerCallback cb)
 {
-    int64_t expire = Clock::CurrentTimeMillis() + time;
+    int64_t expire = Clock::CurrentTimeMillis() + milsec;
     TimerNode node;
     node.id = nextCounter();
     node.expires = expire;
@@ -82,7 +82,7 @@ int PQTimer::AddTimer(uint32_t time, TimerCallback cb)
 }
 
 // This operation is O(n) complexity
-bool PQTimer::CancelTimer(int id)
+bool PQTimer::Cancel(int id)
 {
     for (int idx = 0; idx < (int)heap_.size(); idx++)
     {
@@ -106,9 +106,17 @@ bool PQTimer::CancelTimer(int id)
     return false;
 }
 
-void PQTimer::Update()
+int PQTimer::Update(int64_t now)
 {
-    int64_t now = Clock::CurrentTimeMillis();
+    if (heap_.empty())
+    {
+        return 0;
+    }
+    if (now == 0)
+    {
+        now = Clock::CurrentTimeMillis();
+    }
+    int fired = 0;
     while (!heap_.empty())
     {
         TimerNode& node = heap_.front();
@@ -116,16 +124,19 @@ void PQTimer::Update()
         {
             break;
         }
+        
         auto cb = std::move(node.cb);
         int n = (int)heap_.size() - 1;
         std::swap(heap_[0], heap_[n]);
         heap_[0].index = 0;
         siftdown(0, n);
         heap_.pop_back();
+        fired++;
 
         if (cb)
         {
             cb();
         }
     }
+    return fired;
 }

@@ -32,11 +32,11 @@ public:
     TreeTimer();
     ~TreeTimer();
 
-    int AddTimer(uint32_t time, TimerCallback cb) override;
+    int RunAfter(uint32_t milliseconds, TimerCallback cb) override;
 
-    bool CancelTimer(int id) override;
+    bool Cancel(int id) override;
 
-    void Update() override;
+    int Update(int64_t now) override;
 
     int Size() const override 
     { 

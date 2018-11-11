@@ -120,12 +120,12 @@ void WheelTimer::addTimerNode(TimerNode* node)
     list->push_back(node);
 }
 
-int WheelTimer::AddTimer(uint32_t time, TimerCallback cb)
+int WheelTimer::RunAfter(uint32_t milsec, TimerCallback cb)
 {
     TimerNode* node = allocNode();
     node->canceled = false;
     node->cb = cb;
-    node->expires = jiffies_ + time;
+    node->expires = jiffies_ + milsec;
     node->id = nextCounter();
     addTimerNode(node);
     ref_[node->id] = node;
@@ -134,7 +134,7 @@ int WheelTimer::AddTimer(uint32_t time, TimerCallback cb)
 }
 
 // Do lazy cancellation, so we can effectively use vector as container of timer nodes
-bool WheelTimer::CancelTimer(int id)
+bool WheelTimer::Cancel(int id)
 {
     TimerNode* node = ref_[id];
     if (node != nullptr)
@@ -163,7 +163,7 @@ bool WheelTimer::cascadeTimers(int bucket, int index)
 #define INDEX(N) ((jiffies_ >> (TVR_BITS + (N) * TVN_BITS)) & TVN_MASK)
 
 // cascades all vectors and executes all expired timer
-void WheelTimer::tick()
+int WheelTimer::tick()
 {
     int index = jiffies_ & TVR_MASK;
     if (index == 0) // cascade timers
@@ -180,38 +180,46 @@ void WheelTimer::tick()
     // swap list
     TimerList expired;
     near_[index].swap(expired);
-
+    int fired = 0;
     for (auto node : expired)
     {
         if (!node->canceled && node->cb)
         {
             node->cb();
             size_--;
+            fired++;
         }
         
         ref_.erase(node->id);
         delete node;
     }
+    return fired;
 }
 
-void WheelTimer::Update()
+int WheelTimer::Update(int64_t now)
 {
-    int64_t now = Clock::GetNowTickCount();
+    if (now == 0)
+    {
+        now = Clock::GetNowTickCount();
+    }
     if (now < current_)
     {
         LOG(ERROR) << "time go backwards: " << now << ", " << current_;
-        return;
+        return 0;
     }
     else if (now >= current_)
     {
         int64_t ticks = (now - current_) / TIME_UNIT;
         if (ticks > 0)
         {
+            int fired = 0;
             current_ = now;
             for (int i = 0; i < ticks; i++)
             {
-                tick();
+                fired += tick();
             }
+            return fired;
         }
     }
+    return 0;
 }

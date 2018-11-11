@@ -21,9 +21,9 @@ void TreeTimer::clear()
     tree_.clear();
 }
 
-int TreeTimer::AddTimer(uint32_t time, TimerCallback cb)
+int TreeTimer::RunAfter(uint32_t milsec, TimerCallback cb)
 {
-    int64_t expire = Clock::CurrentTimeMillis() + time;
+    int64_t expire = Clock::CurrentTimeMillis() + milsec;
     TimerNode node;
     node.id = nextCounter();
     node.expires = expire;
@@ -33,7 +33,7 @@ int TreeTimer::AddTimer(uint32_t time, TimerCallback cb)
 }
 
 // This operation is O(n) complexity
-bool TreeTimer::CancelTimer(int id)
+bool TreeTimer::Cancel(int id)
 {
     for (auto iter = tree_.begin(); iter != tree_.end(); ++iter)
     {
@@ -46,9 +46,17 @@ bool TreeTimer::CancelTimer(int id)
     return false;
 }
 
-void TreeTimer::Update()
+int TreeTimer::Update(int64_t now)
 {
-    int64_t now = Clock::CurrentTimeMillis();
+    if (tree_.empty())
+    {
+        return 0;
+    }
+    int fired = 0;
+    if (now == 0)
+    {
+        now = Clock::CurrentTimeMillis();
+    }
     while (!tree_.empty())
     {
         auto iter = tree_.begin();
@@ -59,9 +67,11 @@ void TreeTimer::Update()
         }
         auto cb = std::move(node.cb);
         tree_.erase(iter);
+        fired++;
         if (cb)
         {
             cb();
         }
     }
+    return fired;
 }

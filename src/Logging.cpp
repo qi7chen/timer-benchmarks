@@ -32,10 +32,10 @@
 #include <cstdio>
 #include <cstring>
 #include <mutex>
-#include "Preprocessor.h"
 
 #ifdef _WIN32
 #include <Windows.h>
+#define snprintf _snprintf
 #endif
 
 using std::mutex;
