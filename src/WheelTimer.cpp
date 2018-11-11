@@ -7,12 +7,18 @@
 #include "Logging.h"
 #include <assert.h>
 
+inline int64_t gettime()
+{
+    return Clock::GetNowTickCount() / int64_t(1e9);
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 WheelTimer::WheelTimer()
-    : current_(Clock::GetNowTickCount())
+    : current_(gettime())
 {
     ref_.rehash(64);            // reserve a little space
-    free_list_.reserve(1024);   // max free list item count
+    free_list_.reserve(FREE_LIST_CAPACITY);
 }
 
 
@@ -44,6 +50,10 @@ void WheelTimer::clearAll()
         }
     }
     ref_.clear();
+    for (auto node : free_list_)
+    {
+        delete node;
+    }
 }
 
 WheelTimer::TimerNode* WheelTimer::allocNode()
@@ -52,6 +62,7 @@ WheelTimer::TimerNode* WheelTimer::allocNode()
     if (free_list_.size() > 0)
     {
         node = free_list_.back();
+        free_list_.pop_back();
     }
     else
     {
@@ -59,6 +70,7 @@ WheelTimer::TimerNode* WheelTimer::allocNode()
     }
     return node;
 }
+
 
 void WheelTimer::freeNode(TimerNode* node)
 {
@@ -74,7 +86,7 @@ void WheelTimer::freeNode(TimerNode* node)
 
 void WheelTimer::addTimerNode(TimerNode* node)
 {
-    int64_t expires = node->expires;
+    int64_t expires = node->expire;
     uint64_t idx = (uint64_t)(expires - jiffies_);
     TimerList* list = nullptr;
     if (idx < TVR_SIZE) // [0, 0x100)
@@ -122,10 +134,15 @@ void WheelTimer::addTimerNode(TimerNode* node)
 
 int WheelTimer::RunAfter(uint32_t milsec, TimerCallback cb)
 {
+    int64_t jiffes = milsec / TIME_UNIT; // time unit is centisecond
+    if (milsec % TIME_UNIT > 0)
+    {
+        jiffes++;
+    }
     TimerNode* node = allocNode();
     node->canceled = false;
     node->cb = cb;
-    node->expires = jiffies_ + milsec;
+    node->expire = jiffies_ + jiffes;
     node->id = nextCounter();
     addTimerNode(node);
     ref_[node->id] = node;
@@ -147,7 +164,7 @@ bool WheelTimer::Cancel(int id)
 }
 
 // cascade all the timers at bucket of index up one level
-bool WheelTimer::cascadeTimers(int bucket, int index)
+bool WheelTimer::cascade(int bucket, int index)
 {
     // swap list
     TimerList list;
@@ -155,7 +172,10 @@ bool WheelTimer::cascadeTimers(int bucket, int index)
 
     for (auto node : list)
     {
-        addTimerNode(node);
+        if (node->id > 0)
+        {
+            addTimerNode(node);
+        }
     }
     return index == 0;
 }
@@ -165,22 +185,28 @@ bool WheelTimer::cascadeTimers(int bucket, int index)
 // cascades all vectors and executes all expired timer
 int WheelTimer::tick()
 {
+    int fired = execute();
     int index = jiffies_ & TVR_MASK;
     if (index == 0) // cascade timers
     {
-        if (cascadeTimers(0, INDEX(0)) && 
-            cascadeTimers(1, INDEX(1)) && 
-            cascadeTimers(2, INDEX(2)))
-            cascadeTimers(3, INDEX(3));
+        if (cascade(0, INDEX(0)) &&
+            cascade(1, INDEX(1)) &&
+            cascade(2, INDEX(2)))
+            cascade(3, INDEX(3));
     }
 #undef INDEX
     
-    ++jiffies_;
+    jiffies_++;
+    fired += execute();
+    return fired;
+}
 
-    // swap list
-    TimerList expired;
-    near_[index].swap(expired);
+int WheelTimer::execute()
+{
     int fired = 0;
+    int index = jiffies_ & TVR_MASK;
+    TimerList expired;
+    near_[index].swap(expired); // swap list
     for (auto node : expired)
     {
         if (!node->canceled && node->cb)
@@ -189,34 +215,35 @@ int WheelTimer::tick()
             size_--;
             fired++;
         }
-        
+
         ref_.erase(node->id);
-        delete node;
+        freeNode(node);
     }
     return fired;
 }
 
-int WheelTimer::Update()
+int WheelTimer::Update(int64_t now)
 {
-    int64_t now = Clock::GetNowTickCount();
+    if (now == 0)
+    {
+        now = gettime();
+    }
     if (now < current_)
     {
         assert(false && "time go backwards");
+        current_ = now;
         return -1;
     }
-    else if (now >= current_)
+    else if (now > current_)
     {
-        int64_t ticks = (now - current_) / TIME_UNIT;
-        if (ticks > 0)
+        uint32_t ticks = (uint32_t)(now - current_);
+        current_ = now;
+        int fired = 0;
+        for (uint32_t i = 0; i < ticks; i++)
         {
-            int fired = 0;
-            current_ = now;
-            for (int i = 0; i < ticks; i++)
-            {
-                fired += tick();
-            }
-            return fired;
+            fired += tick();
         }
+        return fired;
     }
     return 0;
 }

@@ -35,7 +35,7 @@ enum
 
     MAX_TVAL = ((uint64_t)((1ULL << (TVR_BITS + 4 * TVN_BITS)) - 1)),
 
-    TIME_UNIT = int64_t(1e7),       // centisecond, i.e. 1/100 second
+    TIME_UNIT = int64_t(10),       // centisecond, i.e. 1/100 second
 };
 
 class WheelTimer : public TimerQueueBase
@@ -45,11 +45,13 @@ public:
     {
         bool canceled = false;  // do lazy cancellation
         int id = -1;
-        int64_t expires = 0;
+        int64_t expire = -1;     // jiffies
         TimerCallback cb;
     };
 
     typedef std::vector<TimerNode*> TimerList;
+
+    const int FREE_LIST_CAPACITY = 1024;
 
 public:
     WheelTimer();
@@ -59,7 +61,7 @@ public:
 
     bool Cancel(int id) override;
 
-    int Update() override;
+    int Update(int64_t now = 0) override;
 
     int Size() const override 
     { 
@@ -69,7 +71,8 @@ public:
 private:
     int tick();
     void addTimerNode(TimerNode* node);
-    bool cascadeTimers(int bucket, int index);
+    int execute();
+    bool cascade(int bucket, int index);
     void clearList(TimerList& list);
     void clearAll();
     TimerNode* allocNode();
