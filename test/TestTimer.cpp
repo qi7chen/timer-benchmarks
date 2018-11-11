@@ -4,100 +4,159 @@
 
 #include <chrono>
 #include <thread>
+#include <numeric>
+#include <algorithm>
 #include <gtest/gtest.h>
 #include "PQTimer.h"
 #include "TreeTimer.h"
 #include "WheelTimer.h"
 #include "Clock.h"
+#include "Benchmark.h"
 
-enum
+static int N1 = 2000;
+static int N2 = 10;
+static int TRY = 2;
+
+struct timerContext
 {
-    ScheduleRange = 100,
-    MaxTimeoutCount = 20,
+    int64_t schedule = 0;   // when timer schedule to run
+    int64_t fired = 0;      // when timer fired
+    int interval = 0;       // interval milliseconds
 };
 
-
-struct TimerContext
+static void TestTimerAdd(TimerQueueBase* timer, int count)
 {
-    int interval = 0;
-    int id = 0;
-    int timeoutCount = 0;
-    int64_t lastExpire = 0;
-    TimerQueueBase* queue = nullptr;
-};
-
-static void onTimeout(TimerContext* ctx)
-{
-    int64_t now = Clock::CurrentTimeMillis();
-    ctx->timeoutCount++;
-
-    if (ctx->lastExpire > 0)
+    int called = 0;
+    auto callback = [&]()
     {
-        int64_t elapsed = now - ctx->lastExpire;
-        int64_t diff = elapsed - ctx->interval;
-        EXPECT_GE(elapsed, ctx->interval);
-    }
-    ctx->lastExpire = now;
-
-    const std::string& timestamp = Clock::CurrentTimeString(now);
-    printf("%s timer[%d] expired of %d\n", timestamp.c_str(), ctx->id, ctx->timeoutCount);
-
-    if (ctx->timeoutCount < MaxTimeoutCount)
+        called++;
+    };
+    for (int i = 0; i < count; i++)
     {
-        int interval = rand() % 50;
-        ctx->interval = interval;
-        ctx->queue->AddTimer(interval, std::bind(&onTimeout, ctx)); // repeat again
+        timer->RunAfter(0, callback);
     }
-    if (ctx->id % 2 == 0 && ctx->timeoutCount == MaxTimeoutCount / 2)
+    EXPECT_EQ(timer->Size(), count);
+    int fired = timer->Update();
+    EXPECT_EQ(fired, count);
+    EXPECT_EQ(called, count);
+    EXPECT_EQ(timer->Size(), 0);
+    called = 0;
+
+    for (int i = 0; i < count; i++)
     {
-        printf("cancel timer %d of %d\n", ctx->id, ctx->timeoutCount);
-        ctx->queue->CancelTimer(ctx->id);
+        int id = timer->RunAfter(0, callback);
+        timer->Cancel(id);
     }
+    fired = timer->Update();
+    EXPECT_EQ(fired, 0);
+    EXPECT_EQ(timer->Size(), 0);
+    EXPECT_EQ(called, 0);
+
+    doNotOptimizeAway(called);
+    doNotOptimizeAway(fired);
 }
 
-static void TestTimerQueue(TimerQueueBase* timer, int count)
+static void TestTimerExpire(TimerQueueBase* timer, int count)
 {
-    std::vector<TimerContext> ctxvec;
-    ctxvec.resize(count);
+    std::vector<timerContext> fired_records;
+    std::vector<TimerCallback> timer_callbacks;
+    fired_records.resize(count);
+    timer_callbacks.resize(count);
+
+    const int TIME_DELTA = 10;
+
     for (int i = 0; i < count; i++)
     {
-        TimerContext* ctx = &ctxvec[i];
-        ctx->queue = timer;
-        ctx->interval = rand() % ScheduleRange;
-        int id = timer->AddTimer(ctx->interval, std::bind(&onTimeout, ctx));
-        ctx->id = id;
-        //printf("schedule timer %d of interval %d\n", id, ctx->interval);
-        //std::this_thread::sleep_for(std::chrono::milliseconds(ctx->interval/2));
-    }
-    for (int i = 0; i < count; i++)
-    {
-        if (i % 2 == 0)
+        auto fn = [&](int idx)
         {
-            timer->CancelTimer(i);
-        }
+            fired_records[idx].fired = Clock::CurrentTimeMillis(); // when timer fired
+        };
+        timer_callbacks[i] = std::bind(fn, i);
+        int interval = 1000 + i * TIME_DELTA;
+        fired_records[i].interval = interval;
+        fired_records[i].schedule = Clock::CurrentTimeMillis(); // when timer scheduled
+        timer->RunAfter(interval, timer_callbacks[i]);
+
+        // this is to avoid all timers started at same time
+        int sleep_interval = rand() % TIME_DELTA;
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_interval));
+        
     }
-    printf("all timers scheduled, %d\n", count / 2);
-    while (timer->Size() > 0)
+    EXPECT_EQ(timer->Size(), count);
+
+    int fired = 0;
+    while (fired < count)
     {
-        timer->Update();
-        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        fired += timer->Update();
     }
+
+    EXPECT_EQ(timer->Size(), 0);
+    
+    std::vector<int> interval_tolerance;
+    interval_tolerance.reserve(count);
+
+    int64_t pre_fired = 0;
+    for (int i = 0; i < fired_records.size(); i++)
+    {
+        const timerContext& ctx = fired_records[i];
+        EXPECT_GE(ctx.fired, ctx.schedule + ctx.interval);
+        if (ctx.interval > 0 && ctx.fired >(ctx.schedule + ctx.interval))
+        {
+            int value = (int)(ctx.fired - (ctx.schedule + ctx.interval));
+            interval_tolerance.push_back(value);
+        }
+        if (pre_fired > 0)
+        {
+            EXPECT_GE(ctx.fired, pre_fired);
+        }
+        pre_fired = ctx.fired;
+    }
+
+    int sum = std::accumulate(interval_tolerance.begin(), interval_tolerance.end(), 0);
+    printf("average tolerance: %f\n", (double)sum / (double)interval_tolerance.size());
 }
 
-TEST(TimerQueue, TestPQTimer)
+TEST(TimerQueue, MinHeapTimerAdd)
 {
     PQTimer timer;
-    TestTimerQueue(&timer, 100);
+    for (int i = 0; i < TRY; i++)
+    {
+        TestTimerAdd(&timer, N1);
+    }
 }
 
-TEST(TimerQueue, TestTreeTimer)
+TEST(TimerQueue, TreeTimerAdd)
 {
     TreeTimer timer;
-    TestTimerQueue(&timer, 100);
+    for (int i = 0; i < TRY; i++)
+    {
+        TestTimerAdd(&timer, N1);
+    }
 }
 
-TEST(TimerQueue, TestWheelTimer)
+TEST(TimerQueue, WheelTimerAdd)
 {
     WheelTimer timer;
-    TestTimerQueue(&timer, 100);
+    for (int i = 0; i < TRY; i++)
+    {
+        TestTimerAdd(&timer, N1);
+    }
+}
+
+TEST(TimerQueue, MinHeapTimerExecute)
+{
+    PQTimer timer;
+    TestTimerExpire(&timer, N2);
+}
+
+TEST(TimerQueue, TreeTimerExecute)
+{
+    TreeTimer timer;
+    TestTimerExpire(&timer, N2);
+}
+
+TEST(TimerQueue, WheelTimerExecute)
+{
+    WheelTimer timer;
+    TestTimerExpire(&timer, N2);
 }

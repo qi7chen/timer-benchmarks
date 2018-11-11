@@ -24,7 +24,7 @@ inline void fillTimer(TimerQueueBase* timer, std::vector<int>& ids, int n)
     auto dummy = []() {};
     for (int i = 0; i < (int)durations.size(); i++)
     {
-        int id = timer->AddTimer(durations[i], dummy);
+        int id = timer->RunAfter(durations[i], dummy);
         ids.push_back(id);
     }
 }
@@ -35,7 +35,7 @@ inline void benchCancel(TimerQueueBase* timer, std::vector<int>& ids)
     std::random_shuffle(ids.begin(), ids.end());
     for (int i = 0; i < (int)ids.size(); i++)
     {
-        timer->CancelTimer(ids[i]);
+        timer->Cancel(ids[i]);
     }
 }
 
