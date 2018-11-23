@@ -2,7 +2,7 @@
 -- Premake script (http://premake.github.io)
 --
 
-solution 'BenchmarkTimers'
+solution 'TimerqueueBenchmark'
     configurations  {'Debug', 'Release'}
     architecture 'x64'
     targetdir    'bin'
@@ -29,7 +29,21 @@ solution 'BenchmarkTimers'
         buildoptions '-std=c++11'
         links 'pthread'
         
-    project 'BenchmarkTimers'
+    project 'libtimer'
+        language    'C++'
+        kind        'StaticLib'
+        includedirs 
+        { 
+            'src',
+        }
+        files
+        {
+            'src/**.cpp',
+            'src/**.h',
+        }
+        
+        
+    project 'benchmark'
         language    'C++'
         kind        'ConsoleApp'
         defines
@@ -45,12 +59,10 @@ solution 'BenchmarkTimers'
             '3rd/googletest',
             '3rd/googletest/include',
         }
-
         files
         {
-            'src/**.cpp',
-            'src/**.h',
             'test/*.cpp',
             '3rd/googletest/src/gtest-all.cc',
         }
+        links 'libtimer'
 
