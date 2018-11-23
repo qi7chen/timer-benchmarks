@@ -19,9 +19,10 @@ static int TRY = 2;
 
 struct timerContext
 {
+    int id = 0;
+    int interval = 0;       // interval milliseconds
     int64_t schedule = 0;   // when timer schedule to run
     int64_t fired = 0;      // when timer fired
-    int interval = 0;       // interval milliseconds
 };
 
 static void TestTimerAdd(TimerQueueBase* timer, int count)
@@ -35,6 +36,10 @@ static void TestTimerAdd(TimerQueueBase* timer, int count)
     {
         timer->RunAfter(0, callback);
     }
+    
+    // to make sure timing-wheel trigger all timers at next time unit
+    std::this_thread::sleep_for(std::chrono::milliseconds(TIME_UNIT));
+
     EXPECT_EQ(timer->Size(), count);
     int fired = timer->Update();
     EXPECT_EQ(fired, count);
@@ -75,7 +80,8 @@ static void TestTimerExpire(TimerQueueBase* timer, int count)
         int interval = 1000 + i * TIME_DELTA;
         fired_records[i].interval = interval;
         fired_records[i].schedule = Clock::CurrentTimeMillis(); // when timer scheduled
-        timer->RunAfter(interval, timer_callbacks[i]);
+        int id = timer->RunAfter(interval, timer_callbacks[i]);
+        fired_records[i].id = id;
 
         // this is to avoid all timers started at same time
         int sleep_interval = rand() % TIME_DELTA;
@@ -84,6 +90,7 @@ static void TestTimerExpire(TimerQueueBase* timer, int count)
     }
     EXPECT_EQ(timer->Size(), count);
 
+    // execute all timers
     int fired = 0;
     while (fired < count)
     {
@@ -115,6 +122,7 @@ static void TestTimerExpire(TimerQueueBase* timer, int count)
     int sum = std::accumulate(interval_tolerance.begin(), interval_tolerance.end(), 0);
     printf("average tolerance: %f\n", (double)sum / (double)interval_tolerance.size());
 }
+
 
 TEST(TimerQueue, MinHeapTimerAdd)
 {
@@ -154,6 +162,7 @@ TEST(TimerQueue, TreeTimerExecute)
     TreeTimer timer;
     TestTimerExpire(&timer, N2);
 }
+
 
 TEST(TimerQueue, WheelTimerExecute)
 {
