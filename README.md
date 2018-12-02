@@ -74,12 +74,12 @@ WheelTimerTick                                    30.36%     4.52ms   221.31
 # 结论
 
 * Windows和Linux两个平台有一些差异；
-* 相比之下，最小堆PerTick()性能消耗最少，AddTimer()和CancelTimer()性能偏低；
-* 红黑树的AddTimer()和CancelTimer()效率都低于另外另个实现；
-* 时间轮整体表现不俗，PerTick部分如果再能优化，是平均效率最优秀的选择；
+* 相比之下，最小堆PerTick()性能消耗最少；
 * 最小堆的编码实现最简单，大多数编程语言都可以迅速实现，实现难度：最小堆 < 时间轮 < 红黑树；
 
 
 ## TO-DO
 
+*非STL版的红黑树实现；
+*时间轮的删除实现；
 * 集成[其它benchmark框架](https://github.com/google/benchmark)来跑性能数据
