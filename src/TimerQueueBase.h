@@ -21,9 +21,9 @@ public:
     TimerQueueBase(const TimerQueueBase&) = delete;
     TimerQueueBase& operator=(const TimerQueueBase&) = delete;
 
-    // create a timer to run after specified milliseconds.
+    // schedule a timer to run after specified time units.
     // returns an unique id identify this timer.
-    virtual int RunAfter(uint32_t milliseconds, TimerCallback cb) = 0;
+    virtual int Schedule(uint32_t time_units, TimerCallback cb) = 0;
 
     // cancel a timer by id.
     virtual bool Cancel(int id) = 0;

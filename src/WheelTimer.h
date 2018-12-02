@@ -34,8 +34,6 @@ enum
     TVR_MASK = (TVR_SIZE - 1),      //
 
     MAX_TVAL = ((uint64_t)((1ULL << (TVR_BITS + 4 * TVN_BITS)) - 1)),
-
-    TIME_UNIT = int64_t(10),       // centisecond, i.e. 1/100 second
 };
 
 class WheelTimer : public TimerQueueBase
@@ -57,7 +55,7 @@ public:
     WheelTimer();
     ~WheelTimer();
 
-    int RunAfter(uint32_t milliseconds, TimerCallback cb) override;
+    int Schedule(uint32_t time_units, TimerCallback cb) override;
 
     bool Cancel(int id) override;
 

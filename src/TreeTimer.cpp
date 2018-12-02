@@ -21,9 +21,9 @@ void TreeTimer::clear()
     tree_.clear();
 }
 
-int TreeTimer::RunAfter(uint32_t milsec, TimerCallback cb)
+int TreeTimer::Schedule(uint32_t time_units, TimerCallback cb)
 {
-    int64_t expire = Clock::CurrentTimeMillis() + milsec;
+    int64_t expire = Clock::CurrentTimeUnits() + time_units;
     TimerNode node;
     node.id = nextCounter();
     node.expires = expire;
@@ -55,7 +55,7 @@ int TreeTimer::Update(int64_t now)
     int fired = 0;
     if (now == 0)
     {
-        now = Clock::CurrentTimeMillis();
+        now = Clock::CurrentTimeUnits();
     }
     while (!tree_.empty())
     {

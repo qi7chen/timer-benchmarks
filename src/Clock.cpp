@@ -12,8 +12,13 @@
 
 int64_t Clock::CurrentTimeMillis()
 {
-    auto now = std::chrono::system_clock::now();
+    auto now = std::chrono::steady_clock::now();
     return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+}
+
+int64_t Clock::CurrentTimeUnits()
+{
+    return CurrentTimeMillis() / TIME_UNIT;
 }
 
 std::string Clock::CurrentTimeString(int64_t timepoint)

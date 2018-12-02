@@ -32,7 +32,7 @@ public:
     TreeTimer();
     ~TreeTimer();
 
-    int RunAfter(uint32_t milliseconds, TimerCallback cb) override;
+    int Schedule(uint32_t time_units, TimerCallback cb) override;
 
     bool Cancel(int id) override;
 

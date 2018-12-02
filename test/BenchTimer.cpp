@@ -24,7 +24,7 @@ inline void fillTimer(TimerQueueBase* timer, std::vector<int>& ids, int n)
     auto dummy = []() {};
     for (int i = 0; i < (int)durations.size(); i++)
     {
-        int id = timer->RunAfter(durations[i], dummy);
+        int id = timer->Schedule(durations[i], dummy);
         ids.push_back(id);
     }
 }

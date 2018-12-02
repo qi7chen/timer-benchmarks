@@ -13,16 +13,17 @@
 #include "Clock.h"
 #include "Benchmark.h"
 
-static int N1 = 2000;
-static int N2 = 10;
-static int TRY = 2;
+const int N1 = 1000;
+const int N2 = 10;
+const int TRY = 2;
+const int TIME_DELTA = 10;
 
 struct timerContext
 {
     int id = 0;
-    int interval = 0;       // interval milliseconds
-    int64_t schedule = 0;   // when timer schedule to run
-    int64_t fired = 0;      // when timer fired
+    int interval = 0;           // interval of time units
+    int64_t ts_schedule = 0;    // when timer scheduled to run
+    int64_t ts_fired = 0;       // when timer fired
 };
 
 static void TestTimerAdd(TimerQueueBase* timer, int count)
@@ -34,7 +35,7 @@ static void TestTimerAdd(TimerQueueBase* timer, int count)
     };
     for (int i = 0; i < count; i++)
     {
-        timer->RunAfter(0, callback);
+        timer->Schedule(0, callback);
     }
     
     // to make sure timing-wheel trigger all timers at next time unit
@@ -49,7 +50,7 @@ static void TestTimerAdd(TimerQueueBase* timer, int count)
 
     for (int i = 0; i < count; i++)
     {
-        int id = timer->RunAfter(0, callback);
+        int id = timer->Schedule(0, callback);
         timer->Cancel(id);
     }
     fired = timer->Update();
@@ -68,29 +69,24 @@ static void TestTimerExpire(TimerQueueBase* timer, int count)
     fired_records.resize(count);
     timer_callbacks.resize(count);
 
-    const int TIME_DELTA = 10;
-
     for (int i = 0; i < count; i++)
     {
         auto fn = [&](int idx)
         {
-            fired_records[idx].fired = Clock::CurrentTimeMillis(); // when timer fired
+            fired_records[idx].ts_fired = Clock::CurrentTimeUnits(); // when timer fired
         };
         timer_callbacks[i] = std::bind(fn, i);
-        int interval = 1000 + i * TIME_DELTA;
-        fired_records[i].interval = interval;
-        fired_records[i].schedule = Clock::CurrentTimeMillis(); // when timer scheduled
-        int id = timer->RunAfter(interval, timer_callbacks[i]);
-        fired_records[i].id = id;
+        int interval = (rand() % 100) + (i + 10) * TIME_DELTA;
+        int id = timer->Schedule(interval, timer_callbacks[i]);
 
-        // this is to avoid all timers started at same time
-        int sleep_interval = rand() % TIME_DELTA;
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_interval));
-        
+        fired_records[i].interval = interval;
+        fired_records[i].ts_schedule = Clock::CurrentTimeUnits(); // when timer scheduled
+        fired_records[i].id = id;
     }
     EXPECT_EQ(timer->Size(), count);
 
     // execute all timers
+    printf("start execute timer at %lld\n", Clock::CurrentTimeUnits());
     int fired = 0;
     while (fired < count)
     {
@@ -102,27 +98,24 @@ static void TestTimerExpire(TimerQueueBase* timer, int count)
     std::vector<int> interval_tolerance;
     interval_tolerance.reserve(count);
 
-    int64_t pre_fired = 0;
     for (int i = 0; i < fired_records.size(); i++)
     {
         const timerContext& ctx = fired_records[i];
-        EXPECT_GE(ctx.fired, ctx.schedule + ctx.interval);
-        if (ctx.interval > 0 && ctx.fired >(ctx.schedule + ctx.interval))
+        EXPECT_GE(ctx.ts_fired, ctx.ts_schedule + ctx.interval);
+        if (ctx.ts_fired < ctx.ts_schedule + ctx.interval)
         {
-            int value = (int)(ctx.fired - (ctx.schedule + ctx.interval));
+            printf("timer %d failed\n", ctx.id);
+        }
+        if (ctx.interval > 0 && ctx.ts_fired > (ctx.ts_schedule + ctx.interval))
+        {
+            int value = (int)(ctx.ts_fired - (ctx.ts_schedule + ctx.interval));
             interval_tolerance.push_back(value);
         }
-        if (pre_fired > 0)
-        {
-            EXPECT_GE(ctx.fired, pre_fired);
-        }
-        pre_fired = ctx.fired;
     }
 
     int sum = std::accumulate(interval_tolerance.begin(), interval_tolerance.end(), 0);
     printf("average tolerance: %f\n", (double)sum / (double)interval_tolerance.size());
 }
-
 
 TEST(TimerQueue, MinHeapTimerAdd)
 {
@@ -162,7 +155,6 @@ TEST(TimerQueue, TreeTimerExecute)
     TreeTimer timer;
     TestTimerExpire(&timer, N2);
 }
-
 
 TEST(TimerQueue, WheelTimerExecute)
 {

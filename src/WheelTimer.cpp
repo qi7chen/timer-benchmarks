@@ -7,10 +7,10 @@
 #include "Logging.h"
 #include <assert.h>
 
-#define CURRENT_TIME   (Clock::CurrentTimeMillis() / TIME_UNIT)
+
 
 WheelTimer::WheelTimer()
-    : current_(CURRENT_TIME)
+    : current_(Clock::CurrentTimeUnits())
 {
     ref_.rehash(64);            // reserve a little space
     free_list_.reserve(FREE_LIST_CAPACITY);
@@ -128,22 +128,17 @@ void WheelTimer::addTimerNode(TimerNode* node)
     list->push_back(node);
 }
 
-int WheelTimer::RunAfter(uint32_t milsec, TimerCallback cb)
+int WheelTimer::Schedule(uint32_t time_units, TimerCallback cb)
 {
-    int64_t jiffes = milsec / TIME_UNIT; // time unit is centisecond
-    if (milsec % TIME_UNIT > 0)
-    {
-        jiffes++;
-    }
     TimerNode* node = allocNode();
     node->canceled = false;
     node->cb = cb;
-    node->expire = jiffies_ + jiffes;
+    node->expire = jiffies_ + time_units;
     node->id = nextCounter();
     addTimerNode(node);
     ref_[node->id] = node;
     size_++;
-    //printf("wheel node %d scheduled at jiffies %lld at %lld\n", node->id, node->expire, current_ + milsec);
+    //printf("wheel node %d scheduled at %lld to %lld #%lld\n", node->id, current_, current_ + time_units, node->expire);
     return node->id;
 }
 
@@ -224,7 +219,7 @@ int WheelTimer::Update(int64_t now)
 {
     if (now == 0)
     {
-        now = CURRENT_TIME;
+        now = Clock::CurrentTimeUnits();
     }
     if (now < current_)
     {
@@ -234,12 +229,12 @@ int WheelTimer::Update(int64_t now)
     }
     else if (now > current_)
     {
-        uint32_t ticks = (uint32_t)(now - current_);
+        int ticks = (int)(now - current_);
         current_ = now;
         int fired = 0;
         for (int i = 0; i < ticks; i++)
         {
-            //printf("tick of jiffies %lld at %lld\n", jiffies_, current_);
+            //printf("tick of jiffies %lld at %lld, %d/%d\n", jiffies_, current_, i, ticks);
             fired += tick();
         }
         return fired;
