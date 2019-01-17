@@ -80,6 +80,6 @@ WheelTimerTick                                    30.36%     4.52ms   221.31
 
 ## TO-DO
 
-*非STL版的红黑树实现；
-*时间轮的删除实现；
+* 非STL版的红黑树实现；
+* 时间轮的删除实现；
 * 集成[其它benchmark框架](https://github.com/google/benchmark)来跑性能数据
