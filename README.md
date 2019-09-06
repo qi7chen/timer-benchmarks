@@ -7,8 +7,9 @@
 
 # 如何构建本项目
 
-* 下载[premake](https://premake.github.io/download.html#v5)
-* 使用premake生成Visual Studio解决方案或者makefile，如`premake5 vs2017`
+* 支持[CMake](https://cmake.org/download/)和[premake](https://premake.github.io/download.html#v5)构建
+* CMake方式 `mkdir build && cd build && cmake ..`
+* premake方式 `premake5 vs2017` 或 `premake5 gmake`
 
 
 # 性能测试
