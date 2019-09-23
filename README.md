@@ -7,9 +7,9 @@
 
 # 如何构建本项目
 
-* 支持[CMake](https://cmake.org/download/)和[premake](https://premake.github.io/download.html#v5)构建
-* CMake方式 `mkdir build && cd build && cmake ..`
-* premake方式 `premake5 vs2017` 或 `premake5 gmake`
+* 下载[CMake](https://cmake.org/download/)
+* `mkdir build && cd build && cmake ..`
+
 
 
 # 性能测试
