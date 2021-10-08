@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 
+// 最小堆实现的定时器
 // timer queue implemented with priority queue(min-heap)
 //
 // complexity:
@@ -22,7 +23,7 @@ public:
     {
         int index = -1;
         int id = -1;
-        int64_t expires = 0;
+        int64_t when = 0;
         TimerCallback cb;
     };
 

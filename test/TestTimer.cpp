@@ -6,13 +6,17 @@
 #include <thread>
 #include <numeric>
 #include <algorithm>
+#include <memory>
 #include <gtest/gtest.h>
 #include "PQTimer.h"
-#include "TreeTimer.h"
+#include "QuadTree.h"
+#include "RBTreeTimer.h"
 #include "WheelTimer.h"
 #include "Clock.h"
 #include "Benchmark.h"
 
+
+using namespace std;
 
 const int N1 = 1000;
 const int N2 = 10;
@@ -61,6 +65,11 @@ static void TestTimerAdd(TimerQueueBase* timer, int count)
 
     doNotOptimizeAway(called);
     doNotOptimizeAway(fired);
+}
+
+static void TestTimerDel(TimerQueueBase* timer, int count) 
+{
+
 }
 
 static void TestTimerExpire(TimerQueueBase* timer, int count)
@@ -118,47 +127,56 @@ static void TestTimerExpire(TimerQueueBase* timer, int count)
     printf("average tolerance: %f\n", (double)sum / (double)interval_tolerance.size());
 }
 
-TEST(TimerQueue, MinHeapTimerAdd)
+std::vector<TimerQueueBase*>  createTimers() 
 {
-    PQTimer timer;
-    for (int i = 0; i < TRY; i++)
+    std::vector<TimerQueueBase*> timers;
+    timers.push_back(new PQTimer);
+    timers.push_back(new QuadTreeTimer);
+    timers.push_back(new RBTreeTimer);
+    timers.push_back(new WheelTimer);
+    return timers;
+}
+
+void clearTimers(std::vector<TimerQueueBase*>& timers)
+{
+    for (int i = 0; i < timers.size(); i++)
     {
-        TestTimerAdd(&timer, N1);
+        delete timers[i];
     }
+    timers.clear();
 }
 
-TEST(TimerQueue, TreeTimerAdd)
+TEST(TimerQueue, TimerAdd)
 {
-    TreeTimer timer;
-    for (int i = 0; i < TRY; i++)
+    auto timers = createTimers();
+    for (int i = 0; i < timers.size(); i++)
     {
-        TestTimerAdd(&timer, N1);
+        auto timer = timers[i];
+        TestTimerAdd(timer, N1);
     }
+    clearTimers(timers);
 }
 
-TEST(TimerQueue, WheelTimerAdd)
+TEST(TimerQueue, TimerDel)
 {
-    WheelTimer timer;
-    for (int i = 0; i < TRY; i++)
+    auto timers = createTimers();
+    for (int i = 0; i < timers.size(); i++)
     {
-        TestTimerAdd(&timer, N1);
+        auto timer = timers[i];
+        TestTimerDel(timer, N1);
     }
+    clearTimers(timers);
 }
 
-TEST(TimerQueue, MinHeapTimerExecute)
+
+TEST(TimerQueue, TimerExecute)
 {
-    PQTimer timer;
-    TestTimerExpire(&timer, N2);
+    auto timers = createTimers();
+    for (int i = 0; i < timers.size(); i++)
+    {
+        auto timer = timers[i];
+        TestTimerExpire(timer, N1);
+    }
+    clearTimers(timers);
 }
 
-TEST(TimerQueue, TreeTimerExecute)
-{
-    TreeTimer timer;
-    TestTimerExpire(&timer, N2);
-}
-
-TEST(TimerQueue, WheelTimerExecute)
-{
-    WheelTimer timer;
-    TestTimerExpire(&timer, N2);
-}

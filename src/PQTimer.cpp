@@ -5,7 +5,7 @@
 #include "PQTimer.h"
 #include "Clock.h"
 
-#define HEAP_ITEM_LESS(i, j) (heap_[(i)].expires < heap_[(j)].expires)
+#define HEAP_ITEM_LESS(i, j) (heap_[(i)].when < heap_[(j)].when)
 
 PQTimer::PQTimer()
 {
@@ -74,7 +74,7 @@ int PQTimer::Schedule(uint32_t time_units, TimerCallback cb)
     TimerNode node;
     int id = nextCounter();
     node.id = id;
-    node.expires = expire;
+    node.when = expire;
     node.cb = cb;
     node.index = (int)heap_.size();
     heap_.push_back(node);
