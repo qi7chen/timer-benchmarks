@@ -7,17 +7,25 @@
 
 # 如何构建本项目
 
-本项目依赖:
+[Benchmark.h](src/Benchmark.h)取自[folly benchmark](https://github.com/facebook/folly/blob/master/folly/docs/Benchmark.md)
 
-* [glog](https://github.com/google/glog)
+### 本项目依赖:
+
 * [gtest](https://github.com/google/googletest)
-* [folly](https://github.com/facebook/folly)
 
-构建工具使用[CMake](https://cmake.org/download/)并用[conan](https://conan.io)管理依赖
+### 构建工具
 
-使用Linux Shell或者[WSL](https://docs.microsoft.com/en-us/windows/wsl/install)
+使用[CMake](https://cmake.org/download/)
+
+
+### Linux或者[WSL](https://docs.microsoft.com/en-us/windows/wsl/install)构建
 
 * `make build`
+
+### Windows 构建
+
+* `cmake -Bbuilds -DCMAKE_BUILD_TYPE=Release`
+* `cmake --build builds --config Release`
 
 
 
@@ -39,22 +47,29 @@ algo   | Add()    | Cancel() | Tick()   | implement
 
 
 
+Hardware: Ryzen 5 3600X 6-Core 3.79 GHz
+
+OS: Windows 10 21H1
+
+
+
 ```
-E5 2.3GHz CentOS 7 GCC 5.3
+Compiler: GCC 9 (WSL)
 ============================================================================
 test/BenchTimer.cpp                              relative  time/iter  iters/s
 ============================================================================
-PQTimerAdd                                                  28.44ms    35.17
-TreeTimerAdd                                      71.02%    40.04ms    24.97
-WheelTimerAdd                                    293.08%     9.70ms   103.07
+PQTimerAdd                                                  22.84ms    43.79
+TreeTimerAdd                                      97.61%    23.40ms    42.74
+WheelTimerAdd                                    418.14%     5.46ms   183.10
 ----------------------------------------------------------------------------
-PQTimerDel                                                 850.45ms     1.18
-TreeTimerDel                                       5.09%     16.71s   59.83m
-WheelTimerDel                                    15.19K%     5.60ms   178.65
+PQTimerDel                                                   8.81ms   113.55
+TreeTimerDel                                     98.79m%      8.91s  112.17m
+WheelTimerDel                                    247.61%     3.56ms   281.15
 ----------------------------------------------------------------------------
-PQTimerTick                                                 21.11ms    47.38
-TreeTimerTick                                     86.90%    24.29ms    41.17
-WheelTimerTick                                    84.62%    24.94ms    40.09
+PQTimerTick                                                 17.86ms    56.01
+TreeTimerTick                                    112.17%    15.92ms    62.82
+WheelTimerTick                                    86.56%    20.63ms    48.48
+============================================================================
 ============================================================================
 
 
@@ -62,21 +77,21 @@ WheelTimerTick                                    84.62%    24.94ms    40.09
 ```
 
 ```
-i5 3.4GHz Windows 10 Visual C++ 15
+Compiler: Visual C++ 2019 
 ============================================================================
 test\benchtimer.cpp                             relative  time/iter  iters/s
 ============================================================================
-PQTimerAdd                                                  12.27ms    81.51
-TreeTimerAdd                                      54.89%    22.35ms    44.74
-WheelTimerAdd                                     70.70%    17.35ms    57.63
+PQTimerAdd                                                  11.86ms    84.32
+TreeTimerAdd                                      79.11%    14.99ms    66.70
+WheelTimerAdd                                    116.96%    10.14ms    98.63
 ----------------------------------------------------------------------------
-PQTimerDel                                                 706.29ms     1.42
-TreeTimerDel                                       5.12%     13.81s   72.43m
-WheelTimerDel                                     8.07K%     8.75ms   114.23
+PQTimerDel                                                   8.64ms   115.72
+TreeTimerDel                                    106.92m%      8.08s  123.73m
+WheelTimerDel                                    145.81%     5.93ms   168.73
 ----------------------------------------------------------------------------
-PQTimerTick                                                  1.37ms   728.89
-TreeTimerTick                                     38.55%     3.56ms   280.97
-WheelTimerTick                                    30.36%     4.52ms   221.31
+PQTimerTick                                                  2.65ms   377.06
+TreeTimerTick                                     66.44%     3.99ms   250.51
+WheelTimerTick                                    46.78%     5.67ms   176.38
 ============================================================================
 ```
 

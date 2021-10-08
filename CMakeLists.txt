@@ -2,17 +2,18 @@
 # Distributed under the terms and conditions of the Apache License. 
 # See accompanying files LICENSE.
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.0)
 
 project (TimerBench)
 
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_STANDARD 11)
+set (GTEST_ROOT_DIR 3rd/googletest-1.11.0/googletest)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS)
-
-
-include_directories(src)
+include_directories(
+    src
+    ${GTEST_ROOT_DIR}
+    ${GTEST_ROOT_DIR}/include
+)
 
 if (WIN32)
     add_definitions(
@@ -32,6 +33,9 @@ file(GLOB_RECURSE TEST_SOURCE_FILES test/*.cpp)
 add_executable(BenchTest 
     ${LIB_HEADER_FILES} ${LIB_SOURCE_FILES}
     ${TEST_HEADER_FILES} ${TEST_SOURCE_FILES}
+    ${GTEST_ROOT_DIR}/src/gtest-all.cc
 )
 
-target_link_libraries(BenchTest  ${CONAN_LIBS} )
+if (UNIX)
+    target_link_libraries(BenchTest  pthread)
+endif(UNIX)

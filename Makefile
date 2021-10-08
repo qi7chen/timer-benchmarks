@@ -3,19 +3,13 @@
 # See accompanying files LICENSE.
 
 target_dir=_builds
+build_type=Release
 
 build: generate
-	cmake --build $(target_dir) --config Release
+	cmake --build $(target_dir) --config $(build_type)
 
-generate: conan_setup
-	cd $(target_dir) && cmake -DCMAKE_BUILD_TYPE=Release ..
-
-conan_setup: install_conan
-	mkdir -p $(target_dir) 
-	cd $(target_dir) && conan install ..
-
-install_conan:
-	pip install conan
+generate: 
+	cmake -B$(target_dir) -DCMAKE_BUILD_TYPE=$(build_type)
 
 clean:
 	rm -rf $(target_dir)
