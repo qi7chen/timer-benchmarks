@@ -5,13 +5,7 @@
 #include "PQTimer.h"
 #include "Clock.h"
 
-struct PQTimer::TimerNode
-{
-    int index = -1;
-    int id = -1;
-    int64_t expires = 0;
-    TimerCallback cb;
-};
+#define HEAP_ITEM_LESS(i, j) (heap_[(i)].expires < heap_[(j)].expires)
 
 PQTimer::PQTimer()
 {
@@ -29,8 +23,6 @@ void PQTimer::clear()
 {
     heap_.clear();
 }
-
-#define HEAP_ITEM_LESS(i, j) (heap_[(i)]->expires < heap_[(j)]->expires)
 
 bool PQTimer::siftdown(int x, int n)
 {
@@ -53,8 +45,8 @@ bool PQTimer::siftdown(int x, int n)
             break;
         }
         std::swap(heap_[i], heap_[j]);
-        heap_[i]->index = i;
-        heap_[j]->index = j;
+        heap_[i].index = i;
+        heap_[j].index = j;
         i = j;
     }
     return i > x;
@@ -70,8 +62,8 @@ void PQTimer::siftup(int j)
             break;
         }
         std::swap(heap_[i], heap_[j]);
-        heap_[i]->index = i;
-        heap_[j]->index = j;
+        heap_[i].index = i;
+        heap_[j].index = j;
         j = i;
     }
 }
@@ -79,19 +71,18 @@ void PQTimer::siftup(int j)
 int PQTimer::Schedule(uint32_t time_units, TimerCallback cb)
 {
     int64_t expire = Clock::CurrentTimeUnits() + time_units;
-    TimerNode* node = new TimerNode;
+    TimerNode node;
     int id = nextCounter();
-    node->id = id;
-    node->expires = expire;
-    node->cb = cb;
-    node->index = (int)heap_.size();
+    node.id = id;
+    node.expires = expire;
+    node.cb = cb;
+    node.index = (int)heap_.size();
     heap_.push_back(node);
     siftup((int)heap_.size() - 1);
     ref_[id] = node;
     return id;
 }
 
-// This operation is O(n) complexity
 bool PQTimer::Cancel(int id)
 {
     auto iter = ref_.find(id);
@@ -103,22 +94,21 @@ bool PQTimer::Cancel(int id)
     return true;
 }
 
-void PQTimer::Cancel(TimerNode* node)
+void PQTimer::Cancel(TimerNode& node)
 {
     int n = (int)heap_.size() - 1;
-    int i = node->index;
+    int i = node.index;
     if (i != n)
     {
         std::swap(heap_[i], heap_[n]);
-        heap_[i]->index = i;
+        heap_[i].index = i;
         if (!siftdown(i, n))
         {
             siftup(i);
         }
     }
     heap_.pop_back();
-    ref_.erase(node->id);
-    delete node;
+    ref_.erase(node.id);
 }
 
 int PQTimer::Update(int64_t now)
@@ -134,13 +124,13 @@ int PQTimer::Update(int64_t now)
     int fired = 0;
     while (!heap_.empty())
     {
-        TimerNode* node = heap_.front();
-        if (now < node->expires)
+        TimerNode& node = heap_.front();
+        if (now < node.expires)
         {
             break;
         }
         
-        auto cb = std::move(node->cb);
+        auto cb = std::move(node.cb);
         Cancel(node);
         fired++;
 

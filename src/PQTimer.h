@@ -18,7 +18,13 @@
 class PQTimer : public TimerQueueBase
 {
 public:
-    struct TimerNode;
+    struct TimerNode
+    {
+        int index = -1;
+        int id = -1;
+        int64_t expires = 0;
+        TimerCallback cb;
+    };
 
 public:
     PQTimer();
@@ -40,9 +46,9 @@ private:
     void clear();
     bool siftdown(int x, int n);
     void siftup(int j);
-    void Cancel(TimerNode* node);
+    void Cancel(TimerNode& node);
 
 private:
-    std::vector<TimerNode*>  heap_;
-    std::unordered_map<int, TimerNode*> ref_;
+    std::vector<TimerNode>  heap_;
+    std::unordered_map<int, TimerNode> ref_;
 };

@@ -11,9 +11,7 @@
 WheelTimer::WheelTimer()
     : current_(Clock::CurrentTimeUnits())
 {
-    ref_.rehash(64);            // reserve a little space
-    free_list_.reserve(FREE_LIST_CAPACITY);
-    //printf("wheel start at %lld\n", current_);
+    ref_.rehash(64);       
 }
 
 
@@ -45,38 +43,17 @@ void WheelTimer::clearAll()
         }
     }
     ref_.clear();
-    for (auto node : free_list_)
-    {
-        delete node;
-    }
 }
 
 WheelTimer::TimerNode* WheelTimer::allocNode()
 {
-    TimerNode* node = nullptr;
-    if (free_list_.size() > 0)
-    {
-        node = free_list_.back();
-        free_list_.pop_back();
-    }
-    else
-    {
-        node = new TimerNode;
-    }
-    return node;
+    return new TimerNode;
 }
 
 
 void WheelTimer::freeNode(TimerNode* node)
 {
-    if (free_list_.size() < free_list_.capacity())
-    {
-        free_list_.push_back(node);
-    } 
-    else 
-    {
-        delete node;
-    }
+    delete node;
 }
 
 void WheelTimer::addTimerNode(TimerNode* node)
@@ -137,7 +114,6 @@ int WheelTimer::Schedule(uint32_t time_units, TimerCallback cb)
     addTimerNode(node);
     ref_[node->id] = node;
     size_++;
-    //printf("wheel node %d scheduled at %lld to %lld #%lld\n", node->id, current_, current_ + time_units, node->expire);
     return node->id;
 }
 
@@ -220,16 +196,16 @@ int WheelTimer::Update(int64_t now)
     {
         now = Clock::CurrentTimeUnits();
     }
-    if (now < current_)
+    if (now < lastTs_)
     {
         assert(false && "time go backwards");
-        current_ = now;
+        lastTs_ = now;
         return -1;
     }
-    else if (now > current_)
+    else if (now > lastTs_)
     {
-        int ticks = (int)(now - current_);
-        current_ = now;
+        int ticks = (int)(now - lastTs_);
+        lastTs_ = now;
         int fired = 0;
         for (int i = 0; i < ticks; i++)
         {
