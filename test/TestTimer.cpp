@@ -11,7 +11,7 @@
 #include "TreeTimer.h"
 #include "WheelTimer.h"
 #include "Clock.h"
-#include <folly/Benchmark.h>
+#include "Benchmark.h"
 
 
 const int N1 = 1000;
@@ -59,8 +59,8 @@ static void TestTimerAdd(TimerQueueBase* timer, int count)
     EXPECT_EQ(timer->Size(), 0);
     EXPECT_EQ(called, 0);
 
-    folly::doNotOptimizeAway(called);
-    folly::doNotOptimizeAway(fired);
+    doNotOptimizeAway(called);
+    doNotOptimizeAway(fired);
 }
 
 static void TestTimerExpire(TimerQueueBase* timer, int count)

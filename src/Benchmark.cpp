@@ -28,7 +28,8 @@
 #include <regex>
 #include <algorithm>
 #include <iostream>
-#include <glog/logging>
+#include "CmdFlag.h"
+#include "Logging.h"
 
 
 using namespace std;

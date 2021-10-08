@@ -5,9 +5,7 @@
 #include "WheelTimer.h"
 #include "Clock.h"
 #include <assert.h>
-#include <glog/logging.h>
-
-
+#include "Logging.h"
 
 
 WheelTimer::WheelTimer()

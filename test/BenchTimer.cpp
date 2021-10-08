@@ -7,11 +7,10 @@
 #include "TreeTimer.h"
 #include "WheelTimer.h"
 #include "Clock.h"
-#include <folly/Benchmark.h>
+#include "Benchmark.h"
 
 
 using namespace std;
-using namespace folly;
 
 const int MaxN = 50000;   // max node count
 
