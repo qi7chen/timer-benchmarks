@@ -1,0 +1,7 @@
+[requires]
+folly/2020.08.10.00
+gtest/cci.20210126
+glog/0.5.0
+
+[generators]
+cmake

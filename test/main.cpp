@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <gtest/gtest.h>
 #include <glog/logging.h>
-#include <benchmark/benchmark.h>
+#include <folly/Benchmark.h>
 
 using std::cout;
 using std::endl;
@@ -20,11 +20,7 @@ int main(int argc, char* argv[])
 
     // only run benchmark in release mode
 #if defined(NDEBUG)
-    benchmark::Initialize(&argc, argv);  
-    if (benchmark::ReportUnrecognizedArguments(argc, argv)) {
-        return 1;
-    }
-    benchmark::RunSpecifiedBenchmarks(); 
+    folly::runBenchmarks();
 #endif
 
     return 0;

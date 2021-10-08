@@ -7,8 +7,17 @@
 
 # 如何构建本项目
 
-* 下载[CMake](https://cmake.org/download/)
-* `mkdir build && cd build && cmake ..`
+本项目依赖:
+
+* [glog](https://github.com/google/glog)
+* [gtest](https://github.com/google/googletest)
+* [folly](https://github.com/facebook/folly)
+
+构建工具使用[CMake](https://cmake.org/download/)并用[conan](https://conan.io)管理依赖
+
+使用Linux Shell或者[WSL](https://docs.microsoft.com/en-us/windows/wsl/install)
+
+* `make build`
 
 
 
@@ -83,4 +92,3 @@ WheelTimerTick                                    30.36%     4.52ms   221.31
 
 * 非STL版的红黑树实现；
 * 时间轮的删除实现；
-* 集成[其它benchmark框架](https://github.com/google/benchmark)来跑性能数据

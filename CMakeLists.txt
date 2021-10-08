@@ -4,32 +4,15 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-set (CMAKE_CXX_STANDARD 11)
+project (TimerBench)
 
-### Hunter snapshot that will be used ###
-include("cmake/HunterGate.cmake")
-HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.23.111.tar.gz"
-    SHA1 "4189bbd869abe4eb69b5303d3f916c03d34dc154"
-)
+set (CMAKE_CXX_STANDARD 14)
 
-project(TimerBench)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(TARGETS)
 
-### Download dependencies ###
-hunter_add_package(glog)
-hunter_add_package(benchmark)
-hunter_add_package(GTest)
 
-### Find dependencies ###
-find_package(glog CONFIG REQUIRED)
-find_package(benchmark CONFIG REQUIRED)
-find_package(GTest CONFIG REQUIRED)
-
-set(PROJECT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-
-include_directories(
-    src
-)
+include_directories(src)
 
 if (WIN32)
     add_definitions(
@@ -51,8 +34,4 @@ add_executable(BenchTest
     ${TEST_HEADER_FILES} ${TEST_SOURCE_FILES}
 )
 
-target_link_libraries(BenchTest 
-    glog::glog
-    benchmark::benchmark
-    GTest::gtest
-)
+target_link_libraries(BenchTest  ${CONAN_LIBS} )
