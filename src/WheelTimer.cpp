@@ -4,8 +4,9 @@
 
 #include "WheelTimer.h"
 #include "Clock.h"
-#include "Logging.h"
 #include <assert.h>
+#include <glog/logging.h>
+
 
 
 

@@ -2,12 +2,13 @@
 // Distributed under the terms and conditions of the Apache License. 
 // See accompanying files LICENSE.
 
-#include "Benchmark.h"
+
 #include <algorithm>
 #include "PQTimer.h"
 #include "TreeTimer.h"
 #include "WheelTimer.h"
 #include "Clock.h"
+#include <benchmark/benchmark.h>
 
 
 const int MaxN = 50000;   // max node count

@@ -8,7 +8,8 @@
 #include <Windows.h>
 #define snprintf sprintf_s
 #endif
-#include "Logging.h"
+#include <glog/logging.h>
+
 
 int64_t Clock::CurrentTimeMillis()
 {
