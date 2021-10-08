@@ -48,149 +48,151 @@ inline void benchTick(TimerQueueBase* timer, int n)
     }
 }
 
-BENCHMARK(PQTimerAdd , n)
+static void BM_PQTimerAdd(benchmark::State& state)
 {
     PQTimer timer;
     std::vector<int> ids;
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-    }
+    state.PauseTiming();
+    ids.reserve(MaxN);
+    state.ResumeTiming();
 
     fillTimer(&timer, ids, MaxN);
 
-    doNotOptimizeAway(timer);
+    DoNotOptimize(timer);
 }
 
-BENCHMARK_RELATIVE(TreeTimerAdd, n)
+BENCHMARK(BM_PQTimerAdd);
+
+static void BM_TreeTimerAdd(benchmark::State& state)
 {
     TreeTimer timer;
     std::vector<int> ids;
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-    }
+    state.PauseTiming();
+    ids.reserve(MaxN);
+    state.ResumeTiming();
 
     fillTimer(&timer, ids, MaxN);
 
-    doNotOptimizeAway(timer);
+    DoNotOptimize(timer);
 }
 
-BENCHMARK_RELATIVE(WheelTimerAdd, n)
+BENCHMARK(BM_TreeTimerAdd);
+
+
+static void BM_WheelTimerAdd(benchmark::State& state)
 {
     WheelTimer timer;
     std::vector<int> ids;
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-    }
+    state.PauseTiming();
+    ids.reserve(MaxN);
+    state.ResumeTiming();
 
     fillTimer(&timer, ids, MaxN);
 
-    doNotOptimizeAway(timer);
+    DoNotOptimize(timer);
 }
 
-BENCHMARK_DRAW_LINE()
+BENCHMARK(BM_WheelTimerAdd);
 
 
-BENCHMARK(PQTimerDel, n)
+static void BM_PQTimerDel(benchmark::State& state)
 {
     PQTimer timer;
     std::vector<int> ids;
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(&timer, ids, MaxN);
-    }
+    state.PauseTiming();
+    ids.reserve(MaxN);
+    fillTimer(&timer, ids, MaxN);
+    state.ResumeTiming();
 
     benchCancel(&timer, ids);
 
-    doNotOptimizeAway(timer);
+    DoNotOptimize(timer);
 }
 
-BENCHMARK_RELATIVE(TreeTimerDel, n)
+BENCHMARK(BM_PQTimerDel);
+
+static void BM_TreeTimerDel(benchmark::State& state)
 {
     TreeTimer timer;
     std::vector<int> ids;
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(&timer, ids, MaxN);
-    }
+    state.PauseTiming();
+    ids.reserve(MaxN);
+    fillTimer(&timer, ids, MaxN);
+    state.ResumeTiming();
 
     benchCancel(&timer, ids);
 
-    doNotOptimizeAway(timer);
+    DoNotOptimize(timer);
 }
 
-BENCHMARK_RELATIVE(WheelTimerDel, n)
+BENCHMARK(BM_TreeTimerDel);
+
+static void BM_WheelTimerDel(benchmark::State& state)
 {
     WheelTimer timer;
     std::vector<int> ids;
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(&timer, ids, MaxN);
-    }
+    state.PauseTiming();
+    ids.reserve(MaxN);
+    fillTimer(&timer, ids, MaxN);
+    state.ResumeTiming();
 
     benchCancel(&timer, ids);
 
-    doNotOptimizeAway(timer);
+    DoNotOptimize(timer);
 }
 
-BENCHMARK_DRAW_LINE()
+BENCHMARK(BM_WheelTimerDel);
 
 
-BENCHMARK(PQTimerTick, n)
+static void BM_PQTimerTick(benchmark::State& state)
 {
     PQTimer timer;
     std::vector<int> ids;
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(&timer, ids, MaxN);
-    }
+    state.PauseTiming();
+    ids.reserve(MaxN);
+    fillTimer(&timer, ids, MaxN);
+    state.ResumeTiming();
 
     benchTick(&timer, MaxN);
 
-    doNotOptimizeAway(timer);
+    DoNotOptimize(timer);
 }
 
-BENCHMARK_RELATIVE(TreeTimerTick, n)
+BENCHMARK(BM_PQTimerTick);
+
+static void BM_TreeTimerTick(benchmark::State& state)
 {
     TreeTimer timer;
     std::vector<int> ids;
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(&timer, ids, MaxN);
-    }
+    state.PauseTiming();
+    ids.reserve(MaxN);
+    fillTimer(&timer, ids, MaxN);
+    state.ResumeTiming();
 
     benchTick(&timer, MaxN);
 
-    doNotOptimizeAway(timer);
+    DoNotOptimize(timer);
 }
 
-BENCHMARK_RELATIVE(WheelTimerTick, n)
+static void BM_WheelTimerTick(benchmark::State& state)
 {
     WheelTimer timer;
     std::vector<int> ids;
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(&timer, ids, MaxN);
-    }
+    state.PauseTiming();
+    ids.reserve(MaxN);
+    fillTimer(&timer, ids, MaxN);
+    state.ResumeTiming();
 
     benchTick(&timer, MaxN);
 
-    doNotOptimizeAway(timer);
+    DoNotOptimize(timer);
 }

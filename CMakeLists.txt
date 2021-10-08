@@ -15,9 +15,15 @@ HunterGate(
 
 project(TimerBench)
 
+### Download dependencies ###
 hunter_add_package(glog)
 hunter_add_package(benchmark)
 hunter_add_package(GTest)
+
+### Find dependencies ###
+find_package(glog CONFIG REQUIRED)
+find_package(benchmark CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 
 set(PROJECT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -38,12 +44,15 @@ endif()
 
 file(GLOB_RECURSE LIB_HEADER_FILES src/*.h)
 file(GLOB_RECURSE LIB_SOURCE_FILES src/*.cpp)
+file(GLOB_RECURSE TEST_SOURCE_FILES test/*.cpp)
 
+add_executable(BenchTest 
+    ${LIB_HEADER_FILES} ${LIB_SOURCE_FILES}
+    ${TEST_HEADER_FILES} ${TEST_SOURCE_FILES}
+)
 
-hunter_add_package(glog)
-hunter_add_package(benchmark)
-hunter_add_package(GTest)
-
-add_library(libtimers ${LIB_HEADER_FILES} ${LIB_SOURCE_FILES})
-
-add_subdirectory(test)
+target_link_libraries(BenchTest 
+    glog::glog
+    benchmark::benchmark
+    GTest::gtest
+)

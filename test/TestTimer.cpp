@@ -11,7 +11,7 @@
 #include "TreeTimer.h"
 #include "WheelTimer.h"
 #include "Clock.h"
-#include "Benchmark.h"
+
 
 const int N1 = 1000;
 const int N2 = 10;
@@ -58,8 +58,8 @@ static void TestTimerAdd(TimerQueueBase* timer, int count)
     EXPECT_EQ(timer->Size(), 0);
     EXPECT_EQ(called, 0);
 
-    doNotOptimizeAway(called);
-    doNotOptimizeAway(fired);
+    DoNotOptimize(called);
+    DoNotOptimize(fired);
 }
 
 static void TestTimerExpire(TimerQueueBase* timer, int count)
