@@ -1,27 +1,21 @@
+# Copyright (C) 2018 ichenq@outlook.com. All rights reserved.
+# Distributed under the terms and conditions of the Apache License. 
+# See accompanying files LICENSE.
+
 project(unittest)
-
-set(GTEST_ROOT_DIR ${THIRDPARTY_LIB_DIR}/googletest)
-
-include_directories(
-     ${GTEST_ROOT_DIR}
-     ${GTEST_ROOT_DIR}/include
-)
-
-add_definitions(
-    -DGTEST_STDLIB_CXX11=1
-    -DGTEST_LANG_CXX11=1
-    -DGTEST_HAS_TR1_TUPLE=0
-    -DGTEST_HAS_STD_TUPLE_=1
-)
 
 file(GLOB PROJECT_HEADER_FILES *.h)
 file(GLOB PROJECT_SOURCE_FILES *.cpp)
 
-if (WIN32)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:CONSOLE")
-  add_executable(unittest WIN32 ${PROJECT_HEADER_FILES} ${PROJECT_SOURCE_FILES} ${GTEST_ROOT_DIR}/src/gtest-all.cc)
-else()
-  add_executable(unittest ${PROJECT_HEADER_FILES} ${PROJECT_SOURCE_FILES} ${GTEST_ROOT_DIR}/src/gtest-all.cc)
-endif()
+find_package(glog CONFIG REQUIRED)
+find_package(benchmark CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 
-target_link_libraries(unittest libtimers)
+add_executable(unittest ${PROJECT_HEADER_FILES} ${PROJECT_SOURCE_FILES} )
+
+target_link_libraries(unittest 
+    libtimers
+    glog::glog
+    benchmark::benchmark
+     GTest::gtest
+)

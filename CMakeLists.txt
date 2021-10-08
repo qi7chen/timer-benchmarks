@@ -1,9 +1,25 @@
-cmake_minimum_required(VERSION 3.0)
+# Copyright (C) 2018 ichenq@outlook.com. All rights reserved.
+# Distributed under the terms and conditions of the Apache License. 
+# See accompanying files LICENSE.
 
-project(TimerBenchmark)
+cmake_minimum_required(VERSION 3.5)
+
+set (CMAKE_CXX_STANDARD 11)
+
+### Hunter snapshot that will be used ###
+include("cmake/HunterGate.cmake")
+HunterGate(
+    URL "https://github.com/ruslo/hunter/archive/v0.23.111.tar.gz"
+    SHA1 "4189bbd869abe4eb69b5303d3f916c03d34dc154"
+)
+
+project(TimerBench)
+
+hunter_add_package(glog)
+hunter_add_package(benchmark)
+hunter_add_package(GTest)
 
 set(PROJECT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(THIRDPARTY_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rd)
 
 include_directories(
     src
@@ -24,22 +40,9 @@ file(GLOB_RECURSE LIB_HEADER_FILES src/*.h)
 file(GLOB_RECURSE LIB_SOURCE_FILES src/*.cpp)
 
 
-macro(SOURCE_GROUP_BY_DIR source_files)
-    set(sgbd_cur_dir ${CMAKE_CURRENT_SOURCE_DIR})
-    foreach(sgbd_file ${${source_files}})
-        string(REGEX REPLACE ${sgbd_cur_dir}/\(.*\) \\1 sgbd_fpath ${sgbd_file})
-        string(REGEX REPLACE "\(.*\)/.*" \\1 sgbd_group_name ${sgbd_fpath})
-        string(COMPARE EQUAL ${sgbd_fpath} ${sgbd_group_name} sgbd_nogroup)
-        string(REPLACE "/" "\\" sgbd_group_name ${sgbd_group_name})
-        if(sgbd_nogroup)
-            set(sgbd_group_name "\\")
-        endif(sgbd_nogroup)
-        source_group(${sgbd_group_name} FILES ${sgbd_file})
-    endforeach(sgbd_file)
-endmacro(SOURCE_GROUP_BY_DIR)
-
-SOURCE_GROUP_BY_DIR(LIB_HEADER_FILES)
-SOURCE_GROUP_BY_DIR(LIB_SOURCE_FILES)
+hunter_add_package(glog)
+hunter_add_package(benchmark)
+hunter_add_package(GTest)
 
 add_library(libtimers ${LIB_HEADER_FILES} ${LIB_SOURCE_FILES})
 
