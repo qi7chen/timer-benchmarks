@@ -5,7 +5,7 @@
 #pragma once
 
 #include "TimerBase.h"
-
+#include "RBTree.h"
 
 
 // timer queue implemented with red-black tree.
@@ -15,6 +15,21 @@
 //
 class RBTreeTimer : public TimerBase
 {
+public:
+    struct TimerNode
+    {
+        int id = -1;
+        int64_t deadline = 0;
+        TimeoutAction action = nullptr;
+
+        bool operator < (const TimerNode& b) const
+        {
+            return deadline < b.deadline;
+        }
+    };
+
+    typedef std::list<TimerNode*> TimerNodeList;
+
 public:
     RBTreeTimer();
     ~RBTreeTimer();
@@ -27,12 +42,13 @@ public:
 
     int Size() const override 
     { 
-        return 0; // TODO
+        return size_;
     }
 
 private:
     void clear();
 
-
+    int size_ = 0;
+    RBTree<int64_t, TimerNode*> timers_;
 };
 

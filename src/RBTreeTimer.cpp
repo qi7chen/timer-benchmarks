@@ -18,11 +18,13 @@ RBTreeTimer::~RBTreeTimer()
 
 void RBTreeTimer::clear()
 {
-    
+    timers_.Clear();
+    size_ = 0;
 }
 
 int RBTreeTimer::Start(uint32_t time_units, TimeoutAction action)
 {
+    
     return 0;
 }
 
