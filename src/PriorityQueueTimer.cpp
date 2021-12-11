@@ -83,7 +83,7 @@ int PriorityQueueTimer::Tick(int64_t now)
     while (!heap_.empty()) {
         TimerNode& node = heap_.front();
         if (now < node.deadline) {
-            break;
+            return fired;
         }
         // make sure we don't process timer created by timer events
         if (node.id > max_id) {

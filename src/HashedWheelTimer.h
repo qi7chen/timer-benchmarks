@@ -17,9 +17,6 @@ class HashedWheelTimeout;
 class HashedWheelTimer : public TimerBase
 {
 public:
-
-
-public:
     HashedWheelTimer();
     ~HashedWheelTimer();
 
