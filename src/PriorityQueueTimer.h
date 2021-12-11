@@ -24,6 +24,11 @@ public:
         int id = -1;
         int64_t deadline = 0;
         TimeoutAction action = nullptr;
+
+        bool operator < (const TimerNode& b) const
+        {
+            return deadline < b.deadline;
+        }
     };
 
 public:

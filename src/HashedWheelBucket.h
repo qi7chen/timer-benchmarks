@@ -43,6 +43,12 @@ public:
     bool Expire();
     void Remove();
 
+    bool operator < (const HashedWheelTimeout& b) const
+    {
+        return deadline < b.deadline;
+    }
+
+public:
     HashedWheelTimeout* next = nullptr;
     HashedWheelTimeout* prev = nullptr;
 
