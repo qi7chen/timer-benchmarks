@@ -1,4 +1,4 @@
-// Copyright (C) 2018 ichenq@outlook.com. All rights reserved.
+// Copyright (C) 2018 simon@qchen.fun. All rights reserved.
 // Distributed under the terms and conditions of the Apache License. 
 // See accompanying files LICENSE.
 
@@ -8,12 +8,9 @@
 #include <algorithm>
 #include <memory>
 #include <gtest/gtest.h>
-#include "PQTimer.h"
-#include "QuadTree.h"
-#include "RBTreeTimer.h"
-#include "WheelTimer.h"
 #include "Clock.h"
 #include "Benchmark.h"
+#include "TimerBase.h"
 
 
 using namespace std;
@@ -31,7 +28,7 @@ struct timerContext
     int64_t ts_fired = 0;       // when timer fired
 };
 
-static void TestTimerAdd(TimerQueueBase* timer, int count)
+static void TestTimerAdd(TimerBase* timer, int count)
 {
     int called = 0;
     auto callback = [&]()
@@ -40,14 +37,14 @@ static void TestTimerAdd(TimerQueueBase* timer, int count)
     };
     for (int i = 0; i < count; i++)
     {
-        timer->Schedule(0, callback);
+        timer->Start(0, callback);
     }
     
     // to make sure timing-wheel trigger all timers at next time unit
     std::this_thread::sleep_for(std::chrono::milliseconds(TIME_UNIT));
 
     EXPECT_EQ(timer->Size(), count);
-    int fired = timer->Update();
+    int fired = timer->Tick();
     EXPECT_EQ(fired, count);
     EXPECT_EQ(called, count);
     EXPECT_EQ(timer->Size(), 0);
@@ -55,10 +52,10 @@ static void TestTimerAdd(TimerQueueBase* timer, int count)
 
     for (int i = 0; i < count; i++)
     {
-        int id = timer->Schedule(0, callback);
-        timer->Cancel(id);
+        int id = timer->Start(0, callback);
+        timer->Stop(id);
     }
-    fired = timer->Update();
+    fired = timer->Tick();
     EXPECT_EQ(fired, 0);
     EXPECT_EQ(timer->Size(), 0);
     EXPECT_EQ(called, 0);
@@ -67,17 +64,17 @@ static void TestTimerAdd(TimerQueueBase* timer, int count)
     doNotOptimizeAway(fired);
 }
 
-static void TestTimerDel(TimerQueueBase* timer, int count) 
+static void TestTimerDel(TimerBase* timer, int count)
 {
 
 }
 
-static void TestTimerExpire(TimerQueueBase* timer, int count)
+static void TestTimerExpire(TimerBase* timer, int count)
 {
     std::vector<timerContext> fired_records;
-    std::vector<TimerCallback> timer_callbacks;
+    std::vector<TimeoutAction> timer_actions;
     fired_records.resize(count);
-    timer_callbacks.resize(count);
+    timer_actions.resize(count);
 
     for (int i = 0; i < count; i++)
     {
@@ -85,9 +82,9 @@ static void TestTimerExpire(TimerQueueBase* timer, int count)
         {
             fired_records[idx].ts_fired = Clock::CurrentTimeUnits(); // when timer fired
         };
-        timer_callbacks[i] = std::bind(fn, i);
+        timer_actions[i] = std::bind(fn, i);
         int interval = (rand() % 100) + (i + 10) * TIME_DELTA;
-        int id = timer->Schedule(interval, timer_callbacks[i]);
+        int id = timer->Start(interval, timer_actions[i]);
 
         fired_records[i].interval = interval;
         fired_records[i].ts_schedule = Clock::CurrentTimeUnits(); // when timer scheduled
@@ -100,7 +97,7 @@ static void TestTimerExpire(TimerQueueBase* timer, int count)
     int fired = 0;
     while (fired < count)
     {
-        fired += timer->Update();
+        fired += timer->Tick();
     }
 
     EXPECT_EQ(timer->Size(), 0);
@@ -127,17 +124,17 @@ static void TestTimerExpire(TimerQueueBase* timer, int count)
     printf("average tolerance: %f\n", (double)sum / (double)interval_tolerance.size());
 }
 
-std::vector<TimerQueueBase*>  createTimers() 
+std::vector<TimerBase*>  createTimers() 
 {
-    std::vector<TimerQueueBase*> timers;
-    timers.push_back(new PQTimer);
-    timers.push_back(new QuadTreeTimer);
-    timers.push_back(new RBTreeTimer);
-    timers.push_back(new WheelTimer);
+    std::vector<TimerBase*> timers;
+    for (int i = TIMER_PRIORITY_QUEUE; i <= TIMER_HH_WHEEL; i++)
+    {
+        timers.push_back(CreateTimer((TimerSchedType)i));
+    }
     return timers;
 }
 
-void clearTimers(std::vector<TimerQueueBase*>& timers)
+void clearTimers(std::vector<TimerBase*>& timers)
 {
     for (int i = 0; i < timers.size(); i++)
     {

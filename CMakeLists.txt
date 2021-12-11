@@ -30,12 +30,12 @@ file(GLOB_RECURSE LIB_HEADER_FILES src/*.h)
 file(GLOB_RECURSE LIB_SOURCE_FILES src/*.cpp)
 file(GLOB_RECURSE TEST_SOURCE_FILES test/*.cpp)
 
-add_executable(BenchTest 
+add_executable(TimerBench 
     ${LIB_HEADER_FILES} ${LIB_SOURCE_FILES}
     ${TEST_HEADER_FILES} ${TEST_SOURCE_FILES}
     ${GTEST_ROOT_DIR}/src/gtest-all.cc
 )
 
 if (UNIX)
-    target_link_libraries(BenchTest  pthread)
+    target_link_libraries(TimerBench  pthread)
 endif(UNIX)
