@@ -46,7 +46,7 @@ private:
     void clear();
     bool siftdown(int x, int n);
     void siftup(int j);
-    void cancel(TimerNode& node);
+    void deltimer(TimerNode& node);
 
 private:
     std::vector<TimerNode>  heap_;

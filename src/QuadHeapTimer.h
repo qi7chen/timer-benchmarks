@@ -14,7 +14,7 @@ public:
     {
         int index = -1;
         int id = -1;
-        int64_t when = 0;
+        int64_t deadline = 0;
         TimeoutAction action;
     };
 
@@ -35,4 +35,10 @@ public:
 
 private:
     void clear();
+    int siftup(int i);
+    void siftdown(int i);
+    int deltimer(TimerNode& node);
+
+    std::vector<TimerNode>  heap_;
+    std::unordered_map<int, TimerNode> ref_; // O(1) search
 };
