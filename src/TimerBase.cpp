@@ -27,15 +27,15 @@ TimerBase* CreateTimer(TimerSchedType sched_type)
 {
     switch (sched_type)
     {
-    case TIMER_PRIORITY_QUEUE:
+    case TimerSchedType::TIMER_PRIORITY_QUEUE:
         return new PriorityQueueTimer();
-    case TIMER_QUAD_HEAP:
+    case TimerSchedType::TIMER_QUAD_HEAP:
         return new QuadHeapTimer();
-    case TIMER_RBTREE:
+    case TimerSchedType::TIMER_RBTREE:
         return new RBTreeTimer();
-    case TIMER_HASHED_WHEEL:
+    case TimerSchedType::TIMER_HASHED_WHEEL:
         return new HashedWheelTimer();
-    case TIMER_HH_WHEEL:
+    case TimerSchedType::TIMER_HH_WHEEL:
         return new HHWheelTimer();
     default:
         return nullptr;

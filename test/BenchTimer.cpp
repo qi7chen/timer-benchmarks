@@ -50,7 +50,7 @@ inline void benchTick(TimerBase* timer, int n)
 
 BENCHMARK(PQTimerAdd, n)
 {
-    auto timer = CreateTimer(TIMER_PRIORITY_QUEUE);
+    auto timer = CreateTimer(TimerSchedType::TIMER_PRIORITY_QUEUE);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -65,7 +65,7 @@ BENCHMARK(PQTimerAdd, n)
 
 BENCHMARK_RELATIVE(QuadHeapTimerAdd, n)
 {
-    auto timer = CreateTimer(TIMER_RBTREE);
+    auto timer = CreateTimer(TimerSchedType::TIMER_RBTREE);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -80,7 +80,7 @@ BENCHMARK_RELATIVE(QuadHeapTimerAdd, n)
 
 BENCHMARK_RELATIVE(RBTreeTimerAdd, n)
 {
-    auto timer = CreateTimer(TIMER_RBTREE);
+    auto timer = CreateTimer(TimerSchedType::TIMER_RBTREE);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -95,7 +95,7 @@ BENCHMARK_RELATIVE(RBTreeTimerAdd, n)
 
 BENCHMARK_RELATIVE(HashedWheelTimerAdd, n)
 {
-    auto timer = CreateTimer(TIMER_HASHED_WHEEL);
+    auto timer = CreateTimer(TimerSchedType::TIMER_HASHED_WHEEL);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -110,7 +110,7 @@ BENCHMARK_RELATIVE(HashedWheelTimerAdd, n)
 
 BENCHMARK_RELATIVE(HHWheelTimerAdd, n)
 {
-    auto timer = CreateTimer(TIMER_HH_WHEEL);
+    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -129,7 +129,7 @@ BENCHMARK_DRAW_LINE();
 
 BENCHMARK(PQTimerDel, n)
 {
-    auto timer = CreateTimer(TIMER_PRIORITY_QUEUE);
+    auto timer = CreateTimer(TimerSchedType::TIMER_PRIORITY_QUEUE);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -145,7 +145,7 @@ BENCHMARK(PQTimerDel, n)
 
 BENCHMARK(QuadHeapTimerDel, n)
 {
-    auto timer = CreateTimer(TIMER_QUAD_HEAP);
+    auto timer = CreateTimer(TimerSchedType::TIMER_QUAD_HEAP);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -161,7 +161,7 @@ BENCHMARK(QuadHeapTimerDel, n)
 
 BENCHMARK_RELATIVE(RBTreeTimerDel, n)
 {
-    auto timer = CreateTimer(TIMER_RBTREE);
+    auto timer = CreateTimer(TimerSchedType::TIMER_RBTREE);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -177,7 +177,7 @@ BENCHMARK_RELATIVE(RBTreeTimerDel, n)
 
 BENCHMARK_RELATIVE(HashedWheelTimerDel, n)
 {
-    auto timer = CreateTimer(TIMER_HASHED_WHEEL);
+    auto timer = CreateTimer(TimerSchedType::TIMER_HASHED_WHEEL);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -193,7 +193,7 @@ BENCHMARK_RELATIVE(HashedWheelTimerDel, n)
 
 BENCHMARK_RELATIVE(HHWheelTimerDel, n)
 {
-    auto timer = CreateTimer(TIMER_HH_WHEEL);
+    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -213,7 +213,7 @@ BENCHMARK_DRAW_LINE();
 
 BENCHMARK(PQTimerTick, n)
 {
-    auto timer = CreateTimer(TIMER_PRIORITY_QUEUE);
+    auto timer = CreateTimer(TimerSchedType::TIMER_PRIORITY_QUEUE);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -229,7 +229,7 @@ BENCHMARK(PQTimerTick, n)
 
 BENCHMARK(QuadHeapTimerTick, n)
 {
-    auto timer = CreateTimer(TIMER_QUAD_HEAP);
+    auto timer = CreateTimer(TimerSchedType::TIMER_QUAD_HEAP);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -245,7 +245,7 @@ BENCHMARK(QuadHeapTimerTick, n)
 
 BENCHMARK_RELATIVE(RBTreeTimerTick, n)
 {
-    auto timer = CreateTimer(TIMER_QUAD_HEAP);
+    auto timer = CreateTimer(TimerSchedType::TIMER_QUAD_HEAP);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -261,7 +261,7 @@ BENCHMARK_RELATIVE(RBTreeTimerTick, n)
 
 BENCHMARK_RELATIVE(HashedWheelTimerTick, n)
 {
-    auto timer = CreateTimer(TIMER_HASHED_WHEEL);
+    auto timer = CreateTimer(TimerSchedType::TIMER_HASHED_WHEEL);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND
@@ -277,7 +277,7 @@ BENCHMARK_RELATIVE(HashedWheelTimerTick, n)
 
 BENCHMARK_RELATIVE(HHWheelTimerTick, n)
 {
-    auto timer = CreateTimer(TIMER_HH_WHEEL);
+    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
     std::vector<int> ids;
 
     BENCHMARK_SUSPEND

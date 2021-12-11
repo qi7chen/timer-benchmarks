@@ -15,7 +15,7 @@ public:
         int index = -1;
         int id = -1;
         int64_t deadline = 0;
-        TimeoutAction action;
+        TimeoutAction action = nullptr;
     };
 
 public:

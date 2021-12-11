@@ -127,7 +127,7 @@ static void TestTimerExpire(TimerBase* timer, int count)
 std::vector<TimerBase*>  createTimers() 
 {
     std::vector<TimerBase*> timers;
-    for (int i = TIMER_PRIORITY_QUEUE; i <= TIMER_HH_WHEEL; i++)
+    for (int i = (int)TimerSchedType::TIMER_PRIORITY_QUEUE; i <= (int)TimerSchedType::TIMER_HH_WHEEL; i++)
     {
         timers.push_back(CreateTimer((TimerSchedType)i));
     }

@@ -11,7 +11,7 @@
 // expiry action
 typedef std::function<void()> TimeoutAction;
 
-enum TimerSchedType 
+enum class TimerSchedType 
 {
     TIMER_PRIORITY_QUEUE,
     TIMER_QUAD_HEAP,
