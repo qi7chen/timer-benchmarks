@@ -111,6 +111,11 @@ inline Entry<K, V>* predecessor(Entry<K, V>* t)
 }
 
 template <typename K, typename V>
+Entry<K, V>* Entry<K, V>::next() {
+    return successor(this);
+}
+
+template <typename K, typename V>
 void RBTree<K, V>::Clear()
 {
     auto node = getFirstEntry();
@@ -229,42 +234,42 @@ void RBTree<K, V>::deleteEntry(Entry<K, V>* p)
 
     if (replacement != nullptr) {
         // Link replacement to parent
-        replacement.parent = p.parent;
-        if (p.parent == nullptr) {
-            root_ = replacement
+        replacement->parent = p->parent;
+        if (p->parent == nullptr) {
+            root_ = replacement;
         }
-        else if (p == p.parent.left) {
-            p.parent.left = replacement;
+        else if (p == p->parent->left) {
+            p->parent->left = replacement;
         }
         else {
-            p.parent.right = replacement;
+            p->parent->right = replacement;
         }
 
         // Null out links so they are OK to use by fixAfterDeletion.
-        p.left = nullptr;
-        p.right = nullptr;
-        p.parent = nullptr;
+        p->left = nullptr;
+        p->right = nullptr;
+        p->parent = nullptr;
 
         // Fix replacement
-        if p.color == BLACK{
-            m.fixAfterDeletion(replacement);
+        if (p->color == BLACK) {
+            fixAfterDeletion(replacement);
         }
     }
-    else if (p.parent == nullptr) { // return if we are the only node.
+    else if (p->parent == nullptr) { // return if we are the only node.
         root_ = nullptr;
     }
     else { //  No children. Use self as phantom replacement and unlink.
-        if (p.color == BLACK) {
+        if (p->color == BLACK) {
             fixAfterDeletion(p);
         }
-        if (p.parent != nullptr) {
-            if (p == p.parent.left) {
-                p.parent.left = nullptr;
+        if (p->parent != nullptr) {
+            if (p == p->parent->left) {
+                p->parent->left = nullptr;
             }
-            else if (p == p.parent.right) {
-                p.parent.right = nullptr
+            else if (p == p->parent->right) {
+                p->parent->right = nullptr;
             }
-            p.parent = nullptr;
+            p->parent = nullptr;
         }
     }
 }
@@ -310,30 +315,30 @@ void RBTree<K, V>::rotateRight(Entry<K, V>* p)
     if (p == nullptr) {
         return;
     }
-    auto l = p.left;
-    p.left = l.right;
-    if (l.right != nullptr) {
-        l.right.parent = p;
+    auto l = p->left;
+    p->left = l->right;
+    if (l->right != nullptr) {
+        l->right->parent = p;
     }
-    l.parent = p.parent;
-    if (p.parent == nullptr) {
+    l->parent = p->parent;
+    if (p->parent == nullptr) {
         root_ = l;
     }
-    else if (p.parent.right == p) {
-        p.parent.right = l;
+    else if (p->parent->right == p) {
+        p->parent->right = l;
     }
     else {
-        p.parent.left = l;
+        p->parent->left = l;
     }
-    l.right = p;
-    p.parent = l;
+    l->right = p;
+    p->parent = l;
 }
 
 template <typename K, typename V>
 void RBTree<K, V>::fixAfterInsertion(Entry<K, V>* x)
 {
-    x.color = RED;
-    while (x != nullptr && x != root_ && x.parent.color == RED) {
+    x->color = RED;
+    while (x != nullptr && x != root_ && x->parent->color == RED) {
         if (parentOf(x) == leftOf(parentOf(parentOf(x)))) {
             auto y = rightOf(parentOf(parentOf(x)));
             if (colorOf(y) == RED) {
@@ -363,7 +368,7 @@ void RBTree<K, V>::fixAfterInsertion(Entry<K, V>* x)
             else {
                 if (x == leftOf(parentOf(x))) {
                     x = parentOf(x);
-                    m.rotateRight(x);
+                    rotateRight(x);
                 }
                 setColor(parentOf(x), BLACK);
                 setColor(parentOf(parentOf(x)), RED);
@@ -371,20 +376,20 @@ void RBTree<K, V>::fixAfterInsertion(Entry<K, V>* x)
             }
         }
     }
-    root_.color = BLACK;
+    root_->color = BLACK;
 }
 
 template <typename K, typename V>
 void RBTree<K, V>::fixAfterDeletion(Entry<K, V>* x)
 {
-    for (x != root_ && colorOf(x) == BLACK) {
+    while (x != root_ && colorOf(x) == BLACK) {
         if (x == leftOf(parentOf(x))) {
             auto sib = rightOf(parentOf(x));
 
             if (colorOf(sib) == RED) {
                 setColor(sib, BLACK);
                 setColor(parentOf(x), RED);
-                m.rotateLeft(parentOf(x));
+                rotateLeft(parentOf(x));
                 sib = rightOf(parentOf(x));
             }
 
@@ -397,13 +402,13 @@ void RBTree<K, V>::fixAfterDeletion(Entry<K, V>* x)
                 if (colorOf(rightOf(sib)) == BLACK) {
                     setColor(leftOf(sib), BLACK);
                     setColor(sib, RED);
-                    m.rotateRight(sib);
+                    rotateRight(sib);
                     sib = rightOf(parentOf(x));
                 }
                 setColor(sib, colorOf(parentOf(x)));
                 setColor(parentOf(x), BLACK);
                 setColor(rightOf(sib), BLACK);
-                m.rotateLeft(parentOf(x));
+                rotateLeft(parentOf(x));
                 x = root_;
             }
         }
@@ -432,7 +437,7 @@ void RBTree<K, V>::fixAfterDeletion(Entry<K, V>* x)
                 setColor(sib, colorOf(parentOf(x)));
                 setColor(parentOf(x), BLACK);
                 setColor(leftOf(sib), BLACK);
-                m.rotateRight(parentOf(x));
+                rotateRight(parentOf(x));
                 x = root_;
             }
         }

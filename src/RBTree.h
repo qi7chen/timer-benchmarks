@@ -24,6 +24,8 @@ struct Entry
         : key(k), value(v), parent(parent)
     {
     }
+
+    Entry* next();
 };
 
 // A Red-Black tree implementation.

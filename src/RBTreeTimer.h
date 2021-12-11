@@ -16,19 +16,19 @@
 class RBTreeTimer : public TimerBase
 {
 public:
-    struct TimerNode
+    struct NodeKey
     {
         int id = -1;
         int64_t deadline = 0;
-        TimeoutAction action = nullptr;
-
-        bool operator < (const TimerNode& b) const
+        
+        bool operator < (const NodeKey& b) const
         {
+            if (deadline == b.deadline) {
+                return id > b.id; // bigger id is later added
+            }
             return deadline < b.deadline;
         }
     };
-
-    typedef std::list<TimerNode*> TimerNodeList;
 
 public:
     RBTreeTimer();
@@ -42,13 +42,13 @@ public:
 
     int Size() const override 
     { 
-        return size_;
+        return timers_.Size();
     }
 
 private:
     void clear();
 
-    int size_ = 0;
-    RBTree<int64_t, TimerNode*> timers_;
+    std::unordered_map<int, NodeKey> ref_;
+    RBTree<NodeKey, TimeoutAction> timers_;
 };
 
