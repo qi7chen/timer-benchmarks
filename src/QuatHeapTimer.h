@@ -7,7 +7,9 @@
 #include "TimerBase.h"
 
 
-class QuadHeapTimer : public TimerBase
+// Quaternary-ary heap
+// https://en.wikipedia.org/wiki/D-ary_heap
+class QuatHeapTimer : public TimerBase
 {
 public:
     struct TimerNode
@@ -24,18 +26,20 @@ public:
     };
 
 public:
-    QuadHeapTimer();
-    ~QuadHeapTimer();
+    QuatHeapTimer();
+    ~QuatHeapTimer();
 
-    int Start(uint32_t time_units, TimeoutAction action) override;
+    // start a timer after `ms` milliseconds
+    int Start(uint32_t ms, TimeoutAction action) override;
 
+    // stop a timer
     bool Stop(int timer_id) override;
 
     int Tick(int64_t now = 0) override;
 
     int Size() const override 
     {
-        return 0; // TODO:
+        return (int)heap_.size();
     }    
 
 private:

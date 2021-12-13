@@ -3,30 +3,30 @@
 // See accompanying files LICENSE.
 
 
-#include "QuadHeapTimer.h"
+#include "QuatHeapTimer.h"
 #include "Clock.h"
-#include <assert.h>
+#include "Logging.h"
 
-QuadHeapTimer::QuadHeapTimer()
+QuatHeapTimer::QuatHeapTimer()
 {
     // reserve a little space
     heap_.reserve(16);
 }
 
 
-QuadHeapTimer::~QuadHeapTimer()
+QuatHeapTimer::~QuatHeapTimer()
 {
     clear();
 }
 
-void QuadHeapTimer::clear()
+void QuatHeapTimer::clear()
 {
     heap_.clear();
 }
 
-int QuadHeapTimer::Start(uint32_t time_units, TimeoutAction action)
+int QuatHeapTimer::Start(uint32_t ms, TimeoutAction action)
 {
-    int64_t expire = Clock::CurrentTimeUnits() + time_units;
+    int64_t expire = Clock::CurrentTimeMillis() + ms;
     int i = (int)heap_.size();
 
     TimerNode node;
@@ -42,7 +42,7 @@ int QuadHeapTimer::Start(uint32_t time_units, TimeoutAction action)
     return node.id;
 }
 
-bool QuadHeapTimer::Stop(int timer_id)
+bool QuatHeapTimer::Stop(int timer_id)
 {
     auto iter = ref_.find(timer_id);
     if (iter == ref_.end()) {
@@ -52,13 +52,13 @@ bool QuadHeapTimer::Stop(int timer_id)
     return true;
 }
 
-int QuadHeapTimer::Tick(int64_t now)
+int QuatHeapTimer::Tick(int64_t now)
 {
     if (heap_.empty()) {
         return 0;
     }
     if (now == 0) {
-        now = Clock::CurrentTimeUnits();
+        now = Clock::CurrentTimeMillis();
     }
     int fired = 0;
     int max_id = next_id_;
@@ -85,12 +85,12 @@ int QuadHeapTimer::Tick(int64_t now)
 
 // removes timer i from the current heap.
 // returns the smallest changed index.
-int  QuadHeapTimer::deltimer(TimerNode& node)
+int QuatHeapTimer::deltimer(TimerNode& node)
 {
     int n = (int)heap_.size() - 1; // last node
     int i = node.index;
     if (i != n) {
-        heap_[i] = heap_[n];
+        std::swap(heap_[i], heap_[n]);
         heap_[i].index = i;
     }
     heap_.pop_back();
@@ -106,10 +106,11 @@ int  QuadHeapTimer::deltimer(TimerNode& node)
 // `siftup` puts the timer at position i in the right place
 // in the heap by moving it up toward the top of the heap.
 // It returns the smallest changed index.
-int QuadHeapTimer::siftup(int i)
+int QuatHeapTimer::siftup(int i)
 {
-    assert(size_t(i) < heap_.size());
+    CHECK(size_t(i) < heap_.size());
     int64_t when = heap_[i].deadline;
+    CHECK(when > 0);
     TimerNode tmp = heap_[i];
     while (i > 0) {
         int p = (i - 1) / 4; // parent
@@ -117,21 +118,24 @@ int QuadHeapTimer::siftup(int i)
             break;
         }
         heap_[i] = heap_[p];
+        heap_[i].index = i;
         i = p;
     }
     if (tmp.id != heap_[i].id) {
         heap_[i] = tmp;
+        heap_[i].index = i;
     }
     return i;
 }
 
 // `siftdown` puts the timer at position i in the right place
 // in the heap by moving it down toward the bottom of the heap.
-void QuadHeapTimer::siftdown(int i)
+void QuatHeapTimer::siftdown(int i)
 {
     int n = int(heap_.size());
-    assert(i < n);
+    CHECK(i < n);
     int64_t when = heap_[i].deadline;
+    CHECK(when > 0);
     TimerNode tmp = heap_[i];
     while (true)
     {
@@ -160,9 +164,11 @@ void QuadHeapTimer::siftdown(int i)
             break;
         }
         heap_[i] = heap_[c];
+        heap_[i].index = i;
         i = c;
     }
     if (tmp.id != heap_[i].id) {
         heap_[i] = tmp;
+        heap_[i].index = i;
     }
 }
