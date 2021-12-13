@@ -24,8 +24,8 @@ struct timerContext
 {
     int id = 0;
     int interval = 0;           // interval of time units
-    int64_t ts_schedule = 0;    // when timer scheduled to run
-    int64_t ts_fired = 0;       // when timer fired
+    int64_t started_at = 0;     // when timer scheduled to run
+    int64_t fired_at = 0;       // when timer fired
 };
 
 static void TestTimerAdd(TimerBase* timer, int count)
@@ -66,7 +66,15 @@ static void TestTimerAdd(TimerBase* timer, int count)
 
 static void TestTimerDel(TimerBase* timer, int count)
 {
+    int called = 0;
+    int tid = timer->Start(1000, [&]() {
+        called++;
+    });
 
+    timer->Tick();
+    timer->Stop(tid);
+
+    EXPECT_EQ(called, 0);
 }
 
 static void TestTimerExpire(TimerBase* timer, int count)
@@ -80,24 +88,28 @@ static void TestTimerExpire(TimerBase* timer, int count)
     {
         auto fn = [&](int idx)
         {
-            fired_records[idx].ts_fired = Clock::CurrentTimeUnits(); // when timer fired
+            fired_records[idx].fired_at = Clock::CurrentTimeMillis(); // when timer fired
         };
         timer_actions[i] = std::bind(fn, i);
         int interval = (rand() % 100) + (i + 10) * TIME_DELTA;
         int id = timer->Start(interval, timer_actions[i]);
 
         fired_records[i].interval = interval;
-        fired_records[i].ts_schedule = Clock::CurrentTimeUnits(); // when timer scheduled
+        fired_records[i].started_at = Clock::CurrentTimeMillis(); // when timer scheduled
         fired_records[i].id = id;
     }
     EXPECT_EQ(timer->Size(), count);
 
     // execute all timers
-    printf("start execute timer at %lld\n", Clock::CurrentTimeUnits());
+    printf("start execute timer at %lld\n", Clock::CurrentTimeMillis());
+
     int fired = 0;
-    while (fired < count)
+    for (int i = 0; fired < count; i++)
     {
         fired += timer->Tick();
+        if (i > 0 && i % 100 == 0) {
+            Clock::TimeFly(TIME_UNIT); // time faster
+        }
     }
 
     EXPECT_EQ(timer->Size(), 0);
@@ -108,40 +120,36 @@ static void TestTimerExpire(TimerBase* timer, int count)
     for (int i = 0; i < fired_records.size(); i++)
     {
         const timerContext& ctx = fired_records[i];
-        EXPECT_GE(ctx.ts_fired, ctx.ts_schedule + ctx.interval);
-        if (ctx.ts_fired < ctx.ts_schedule + ctx.interval)
+        EXPECT_GE(ctx.fired_at, ctx.started_at + ctx.interval);
+        if (ctx.fired_at < ctx.started_at + ctx.interval)
         {
             printf("timer %d failed\n", ctx.id);
         }
-        if (ctx.interval > 0 && ctx.ts_fired > (ctx.ts_schedule + ctx.interval))
+        if (ctx.interval > 0 && ctx.fired_at > (ctx.started_at + ctx.interval))
         {
-            int value = (int)(ctx.ts_fired - (ctx.ts_schedule + ctx.interval));
+            int value = (int)(ctx.fired_at - (ctx.started_at + ctx.interval));
             interval_tolerance.push_back(value);
         }
     }
 
+    Clock::TimeReset();
+
     int sum = std::accumulate(interval_tolerance.begin(), interval_tolerance.end(), 0);
-    printf("average tolerance: %f\n", (double)sum / (double)interval_tolerance.size());
+    printf("average tolerance: %fms\n", (double)sum / (double)interval_tolerance.size());
 }
 
-std::vector<TimerBase*>  createTimers() 
+std::vector<std::shared_ptr<TimerBase>>  createTimers()
 {
-    std::vector<TimerBase*> timers;
-    for (int i = (int)TimerSchedType::TIMER_PRIORITY_QUEUE; i <= (int)TimerSchedType::TIMER_HH_WHEEL; i++)
-    {
-        timers.push_back(CreateTimer((TimerSchedType)i));
-    }
-    return timers;
+    std::vector<std::shared_ptr<TimerBase>> timers;
+    //timers.push_back(CreateTimer(TimerSchedType::TIMER_PRIORITY_QUEUE));
+    timers.push_back(CreateTimer(TimerSchedType::TIMER_QUAD_HEAP));
+    //timers.push_back(CreateTimer(TimerSchedType::TIMER_RBTREE));
+    //timers.push_back(CreateTimer(TimerSchedType::TIMER_HASHED_WHEEL));
+    //timers.push_back(CreateTimer(TimerSchedType::TIMER_HH_WHEEL));
+    return std::move(timers);
 }
 
-void clearTimers(std::vector<TimerBase*>& timers)
-{
-    for (int i = 0; i < timers.size(); i++)
-    {
-        delete timers[i];
-    }
-    timers.clear();
-}
+
 
 TEST(TimerQueue, TimerAdd)
 {
@@ -149,9 +157,8 @@ TEST(TimerQueue, TimerAdd)
     for (int i = 0; i < timers.size(); i++)
     {
         auto timer = timers[i];
-        TestTimerAdd(timer, N1);
+        TestTimerAdd(timer.get(), N1);
     }
-    clearTimers(timers);
 }
 
 TEST(TimerQueue, TimerDel)
@@ -160,9 +167,8 @@ TEST(TimerQueue, TimerDel)
     for (int i = 0; i < timers.size(); i++)
     {
         auto timer = timers[i];
-        TestTimerDel(timer, N1);
+        TestTimerDel(timer.get(), N1);
     }
-    clearTimers(timers);
 }
 
 
@@ -172,8 +178,7 @@ TEST(TimerQueue, TimerExecute)
     for (int i = 0; i < timers.size(); i++)
     {
         auto timer = timers[i];
-        TestTimerExpire(timer, N1);
+        TestTimerExpire(timer.get(), N1);
     }
-    clearTimers(timers);
 }
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <memory>
 #include <functional>
 #include <unordered_map>
 
@@ -49,4 +50,5 @@ protected:
     int next_id_ = 0;   // autoincrement timer id 
 };
 
-TimerBase* CreateTimer(TimerSchedType sched_type);
+std::shared_ptr<TimerBase> CreateTimer(TimerSchedType sched_type);
+

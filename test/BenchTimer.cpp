@@ -13,7 +13,7 @@ using namespace std;
 const int MaxN = 50000;   // max node count
 
 // Add timer with random duration 
-inline void fillTimer(TimerBase* timer, std::vector<int>& ids, int n)
+inline void fillTimer(std::shared_ptr<TimerBase> timer, std::vector<int>& ids, int n)
 {
     std::vector<int> durations;
     for (int i = 0; i < n; i++)
@@ -30,7 +30,7 @@ inline void fillTimer(TimerBase* timer, std::vector<int>& ids, int n)
 }
 
 // Cancel timers with random timer id
-inline void benchCancel(TimerBase* timer, std::vector<int>& ids)
+inline void benchCancel(std::shared_ptr<TimerBase> timer, std::vector<int>& ids)
 {
     std::random_shuffle(ids.begin(), ids.end());
     for (int i = 0; i < (int)ids.size(); i++)
@@ -39,7 +39,7 @@ inline void benchCancel(TimerBase* timer, std::vector<int>& ids)
     }
 }
 
-inline void benchTick(TimerBase* timer, int n)
+inline void benchTick(std::shared_ptr<TimerBase> timer, int n)
 {
     for (int i = 0; i < n; i++)
     {

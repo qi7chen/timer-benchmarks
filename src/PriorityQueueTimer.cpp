@@ -24,9 +24,9 @@ void PriorityQueueTimer::clear()
     heap_.clear();
 }
 
-int PriorityQueueTimer::Start(uint32_t time_units, TimeoutAction action)
+int PriorityQueueTimer::Start(uint32_t ms, TimeoutAction action)
 {
-    int64_t expire = Clock::CurrentTimeUnits() + time_units;
+    int64_t expire = Clock::CurrentTimeMillis() + ms;
     int i = (int)heap_.size();
 
     TimerNode node;
@@ -76,7 +76,7 @@ int PriorityQueueTimer::Tick(int64_t now)
         return 0;
     }
     if (now == 0) {
-        now = Clock::CurrentTimeUnits();
+        now = Clock::CurrentTimeMillis();
     }
     int fired = 0;
     int max_id = next_id_;

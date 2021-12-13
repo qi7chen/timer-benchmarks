@@ -35,8 +35,10 @@ public:
     PriorityQueueTimer();
     ~PriorityQueueTimer();
 
-    int Start(uint32_t time_units, TimeoutAction action) override;
+    // start a timer after `ms` milliseconds
+    int Start(uint32_t ms, TimeoutAction action) override;
 
+    // stop a timer
     bool Stop(int timer_id) override;
 
     int Tick(int64_t now = 0) override;
