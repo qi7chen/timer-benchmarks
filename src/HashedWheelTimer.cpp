@@ -4,8 +4,9 @@
 
 #include "HashedWheelTimer.h"
 #include "HashedWheelBucket.h"
+#include <thread>
+#include <chrono>
 #include "Clock.h"
-#include <assert.h>
 #include "Logging.h"
 
 const int WHEEL_SIZE = 512;
@@ -62,7 +63,7 @@ int HashedWheelTimer::Tick(int64_t now)
 {
     int64_t deadline = started_at_ + TICK_DURATION * (ticks_ + 1);
     if (now < deadline) {
-        return 0; // or sleep to deadline?
+        std::this_thread::sleep_for(std::chrono::milliseconds(deadline - now));
     }
     int idx = ticks_ % (WHEEL_SIZE - 1);
     processCancelledTasks();

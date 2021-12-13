@@ -138,47 +138,107 @@ static void TestTimerExpire(TimerBase* timer, int count)
     printf("average tolerance: %fms\n", (double)sum / (double)interval_tolerance.size());
 }
 
-std::vector<std::shared_ptr<TimerBase>>  createTimers()
+
+TEST(TimerPriorityQueue, TimerAdd)
 {
-    std::vector<std::shared_ptr<TimerBase>> timers;
-    //timers.push_back(CreateTimer(TimerSchedType::TIMER_PRIORITY_QUEUE));
-    timers.push_back(CreateTimer(TimerSchedType::TIMER_QUAD_HEAP));
-    //timers.push_back(CreateTimer(TimerSchedType::TIMER_RBTREE));
-    //timers.push_back(CreateTimer(TimerSchedType::TIMER_HASHED_WHEEL));
-    //timers.push_back(CreateTimer(TimerSchedType::TIMER_HH_WHEEL));
-    return std::move(timers);
+    auto timer = CreateTimer(TimerSchedType::TIMER_PRIORITY_QUEUE);
+    TestTimerAdd(timer.get(), N1);
+}
+
+TEST(TimerPriorityQueue, TimerDel)
+{
+    auto timer = CreateTimer(TimerSchedType::TIMER_PRIORITY_QUEUE);
+    TestTimerDel(timer.get(), N1);
 }
 
 
-
-TEST(TimerQueue, TimerAdd)
+TEST(TimerPriorityQueue, TimerExecute)
 {
-    auto timers = createTimers();
-    for (int i = 0; i < timers.size(); i++)
-    {
-        auto timer = timers[i];
-        TestTimerAdd(timer.get(), N1);
-    }
+    auto timer = CreateTimer(TimerSchedType::TIMER_PRIORITY_QUEUE);
+    TestTimerExpire(timer.get(), N1);
 }
 
-TEST(TimerQueue, TimerDel)
+///////////////////////////////////////////////////////////////////
+
+TEST(TimerQuadHeap, TimerAdd)
 {
-    auto timers = createTimers();
-    for (int i = 0; i < timers.size(); i++)
-    {
-        auto timer = timers[i];
-        TestTimerDel(timer.get(), N1);
-    }
+    auto timer = CreateTimer(TimerSchedType::TIMER_QUAD_HEAP);
+    TestTimerAdd(timer.get(), N1);
+}
+
+TEST(TimerQuadHeap, TimerDel)
+{
+    auto timer = CreateTimer(TimerSchedType::TIMER_QUAD_HEAP);
+    TestTimerDel(timer.get(), N1);
 }
 
 
-TEST(TimerQueue, TimerExecute)
+TEST(TimerQuadHeap, TimerExecute)
 {
-    auto timers = createTimers();
-    for (int i = 0; i < timers.size(); i++)
-    {
-        auto timer = timers[i];
-        TestTimerExpire(timer.get(), N1);
-    }
+    auto timer = CreateTimer(TimerSchedType::TIMER_QUAD_HEAP);
+    TestTimerExpire(timer.get(), N1);
 }
+
+///////////////////////////////////////////////////////////////////
+
+TEST(TimerRBTree, TimerAdd)
+{
+    auto timer = CreateTimer(TimerSchedType::TIMER_RBTREE);
+    TestTimerAdd(timer.get(), N1);
+}
+
+TEST(TimerRBTree, TimerDel)
+{
+    auto timer = CreateTimer(TimerSchedType::TIMER_RBTREE);
+    TestTimerDel(timer.get(), N1);
+}
+
+
+TEST(TimerRBTree, TimerExecute)
+{
+    auto timer = CreateTimer(TimerSchedType::TIMER_RBTREE);
+    TestTimerExpire(timer.get(), N1);
+}
+
+///////////////////////////////////////////////////////////////////
+
+TEST(TimerHashedWheel, TimerAdd)
+{
+    auto timer = CreateTimer(TimerSchedType::TIMER_HASHED_WHEEL);
+    TestTimerAdd(timer.get(), N1);
+}
+
+TEST(TimerHashedWheel, TimerDel)
+{
+    auto timer = CreateTimer(TimerSchedType::TIMER_HASHED_WHEEL);
+    TestTimerDel(timer.get(), N1);
+}
+
+
+TEST(TimerHashedWheel, TimerExecute)
+{
+    auto timer = CreateTimer(TimerSchedType::TIMER_HASHED_WHEEL);
+    TestTimerExpire(timer.get(), N1);
+}
+
+///////////////////////////////////////////////////////////////////
+
+//TEST(TimerHHWheel, TimerAdd)
+//{
+//    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
+//    TestTimerAdd(timer.get(), N1);
+//}
+//
+//TEST(TimerHHWheel, TimerDel)
+//{
+//    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
+//    TestTimerDel(timer.get(), N1);
+//}
+//
+//
+//TEST(TimerHHWheel, TimerExecute)
+//{
+//    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
+//    TestTimerExpire(timer.get(), N1);
+//}
 
