@@ -12,10 +12,13 @@
 #include "CmdFlag.h"
 
 
+int64_t Clock::clock_offset_ = 0;
+
 int64_t Clock::CurrentTimeMillis()
 {
     auto now = std::chrono::steady_clock::now();
-    return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    return ms + clock_offset_;
 }
 
 int64_t Clock::CurrentTimeUnits()
@@ -64,4 +67,14 @@ uint64_t Clock::GetNowTickCount()
     }
     return (ts.tv_sec * 1000000000UL) + ts.tv_nsec;
 #endif
+}
+
+void Clock::TimeReset()
+{
+    clock_offset_ = 0;
+}
+
+void Clock::TimeFly(int64_t ms)
+{
+    clock_offset_ += ms;
 }
