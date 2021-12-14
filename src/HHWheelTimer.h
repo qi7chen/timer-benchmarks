@@ -31,10 +31,27 @@ public:
     }
 
 private:
+    friend struct WheelTimerNode;
+
+    bool AddNode(WheelTimerNode* node);
+    void Remove(WheelTimerNode* node);
+
+    void purgeBucket(WheelTimerBucket*);
+    void purge();
+
+    bool Cascade(int bucket, int index);
+    int ExpireNear();
+    void ShiftLevel();
+    int tick();
+
     void deltimer(WheelTimerNode*);
 
 private:
+    int64_t started_at_ = 0;
     int64_t last_time_ = 0;
-    HHTimingWheel wheel_;
+    int size_ = 0;
+    uint32_t currtick_ = 0;
+    WheelTimerBucket near_[TVR_SIZE];
+    WheelTimerBucket buckets_[4][TVN_SIZE];
     std::unordered_map<int, WheelTimerNode*> ref_;
 };

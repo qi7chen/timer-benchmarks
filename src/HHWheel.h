@@ -55,31 +55,3 @@ struct WheelTimerBucket
     WheelTimerNode* Splice();
     void Clear();
 };
-
-// hashed hierarchical timing wheel
-class HHTimingWheel
-{
-public:
-    HHTimingWheel();
-    ~HHTimingWheel();
-
-    HHTimingWheel(const HHTimingWheel&) = delete;
-    HHTimingWheel& operator=(const HHTimingWheel&) = delete;
-
-    bool AddNode(WheelTimerNode* node);
-    void Remove(WheelTimerNode* node);
-
-    void Clear();
-
-    bool Cascade(int bucket, int index);
-    int ExpireNear();
-    void ShiftLevel();
-    int Tick();
-
-private:
-    const int64_t started_at_ = 0;
-    int size_ = 0;
-    uint32_t currtick_ = 0;
-    WheelTimerBucket near_[TVR_SIZE];
-    WheelTimerBucket buckets_[4][TVN_SIZE];
-};

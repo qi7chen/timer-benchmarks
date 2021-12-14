@@ -79,9 +79,6 @@ int HashedWheelTimer::Tick(int64_t now)
     {
         return 0;
     }
-    if (now == 0) {
-        now = Clock::CurrentTimeMillis();
-    }
     int64_t elapsed = now - last_time_;
     int64_t ticks = elapsed / TIME_UNIT;
     if (ticks <= 0)
