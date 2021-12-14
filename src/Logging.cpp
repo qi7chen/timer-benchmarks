@@ -38,6 +38,12 @@
 #define snprintf _snprintf
 #endif
 
+#ifdef _MSC_VER
+#define DEBUG_BREAK __debugbreak 
+#else
+#define DEBUG_BREAK
+#endif
+
 using std::mutex;
 using std::lock_guard;
 
@@ -85,6 +91,7 @@ void LogMessage::Finish() {
     }
 
     if (level_ == LOGLEVEL_FATAL) {
+        DEBUG_BREAK();
         abort();
     }
 }
