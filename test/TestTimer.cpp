@@ -223,22 +223,22 @@ TEST(TimerHashedWheel, TimerExecute)
 
 ///////////////////////////////////////////////////////////////////
 
-//TEST(TimerHHWheel, TimerAdd)
-//{
-//    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
-//    TestTimerAdd(timer.get(), N1);
-//}
-//
-//TEST(TimerHHWheel, TimerDel)
-//{
-//    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
-//    TestTimerDel(timer.get(), N1);
-//}
-//
-//
-//TEST(TimerHHWheel, TimerExecute)
-//{
-//    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
-//    TestTimerExpire(timer.get(), N1);
-//}
+TEST(TimerHHWheel, TimerAdd)
+{
+    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
+    TestTimerAdd(timer.get(), N1);
+}
+
+TEST(TimerHHWheel, TimerDel)
+{
+    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
+    TestTimerDel(timer.get(), N1);
+}
+
+
+TEST(TimerHHWheel, TimerExecute)
+{
+    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
+    TestTimerExpire(timer.get(), N1);
+}
 
