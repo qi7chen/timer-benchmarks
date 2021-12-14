@@ -58,12 +58,10 @@ void HashedWheelBucket::ExpireTimeouts(int64_t deadline, std::vector<HashedWheel
         HashedWheelTimeout* next = timeout->next;
         if (timeout->remaining_rounds <= 0) {
             next = Remove(timeout);
-            if (timeout->deadline <= deadline) {
-                expired.push_back(timeout);
-            }
-            else {
+            expired.push_back(timeout);
+            if (timeout->deadline > deadline) {
                 // The timeout was placed into a wrong slot. This should never happen.
-                LOG(FATAL) << "timeout deadline";
+                LOG(FATAL) << "timeout deadline: " << timeout->deadline << " > " << deadline;
             }
         }
         else {

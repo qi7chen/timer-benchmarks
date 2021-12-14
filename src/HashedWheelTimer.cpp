@@ -14,12 +14,12 @@ const int64_t TICK_DURATION = 100; // milliseconds
 
 HashedWheelTimer::HashedWheelTimer()
 {
+    started_at_ = Clock::CurrentTimeMillis();
     last_time_ = Clock::CurrentTimeMillis();
     wheel_.resize(WHEEL_SIZE);
     for (int i = 0; i < WHEEL_SIZE; i++) {
         wheel_[i] = new HashedWheelBucket();
     }
-    started_at_ = Clock::CurrentTimeMillis();
 }
 
 
@@ -89,21 +89,18 @@ int HashedWheelTimer::Tick(int64_t now)
     int fired = 0;
     for (int64_t i = 0; i < ticks; i++)
     {
-        fired += tick(now);
+        fired += tick();
     }
     return fired;
 }
 
-int HashedWheelTimer::tick(int64_t now)
+int HashedWheelTimer::tick()
 {
-    int64_t deadline = started_at_ + TICK_DURATION * ticks_;
-    if (now < deadline) {
-        return 0;
-    }
+    int64_t deadline = started_at_ + TICK_DURATION * (ticks_ + 1);
     int idx = ticks_ % (WHEEL_SIZE - 1);
     HashedWheelBucket* bucket = wheel_[idx];
     std::vector<HashedWheelTimeout*> expired;
-    bucket->ExpireTimeouts(now, expired);
+    bucket->ExpireTimeouts(deadline, expired);
     int count = (int)expired.size();
     for (int i = 0; i < (int)expired.size(); i++) {
         HashedWheelTimeout* timeout = expired[i];

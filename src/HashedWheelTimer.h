@@ -36,7 +36,8 @@ private:
     friend class HashedWheelTimeout;
     friend class HashedWheelBucket;
 
-    int tick(int64_t now);
+    int tick();
+
     void purge();
     void delTimeout(HashedWheelTimeout*);
 
