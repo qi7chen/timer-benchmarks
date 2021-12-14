@@ -68,7 +68,7 @@ public:
         auto p = getEntry(key);
         if (p != nullptr) {
             removeEntry(p);
-            deleteEntry(p);
+            freeEntry(p);
             return true;
         }
         return false;
@@ -85,7 +85,7 @@ public:
     void removeEntry(Entry<K, V>* p);
 
     Entry<K, V>* allocEntry(const K& key, const V& value, Entry<K, V>* parent);
-    Entry<K, V>* deleteEntry(Entry<K, V>* p);
+    Entry<K, V>* freeEntry(Entry<K, V>* p);
 
 private:
     void rotateLeft(Entry<K,V>* p);

@@ -124,7 +124,7 @@ void RBTree<K, V>::Clear()
     size_ = 0;
     for (int i = 0; i < entries.size(); i++)
     {
-        deleteEntry(entries[i]);
+        freeEntry(entries[i]);
     }
 }
 
@@ -293,7 +293,7 @@ Entry<K, V>* RBTree<K, V>::allocEntry(const K& key, const V& value, Entry<K, V>*
 }
 
 template <typename K, typename V>
-Entry<K, V>* RBTree<K, V>::deleteEntry(Entry<K, V>* p)
+Entry<K, V>* RBTree<K, V>::freeEntry(Entry<K, V>* p)
 {
     delete p;
     return nullptr;
