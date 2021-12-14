@@ -21,13 +21,13 @@ void RBTreeTimer::clear()
     timers_.Clear();
 }
 
-int RBTreeTimer::Start(uint32_t time_units, TimeoutAction action)
+int RBTreeTimer::Start(uint32_t ms, TimeoutAction action)
 {
     int id = nextId();
     NodeKey key;
     key.id = id;
-    key.deadline = Clock::CurrentTimeMillis() + time_units;
-
+    key.deadline = Clock::CurrentTimeMillis() + ms;
+    timers_.Put(key, action);
     ref_[id] = key;
     return id;
 }
@@ -74,6 +74,7 @@ int RBTreeTimer::Tick(int64_t now)
             {
                 (entry->value)();
             }
+            ref_.erase(entry->key.id);
             delete entry;
         }
     }

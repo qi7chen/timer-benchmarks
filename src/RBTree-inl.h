@@ -133,21 +133,21 @@ Entry<K, V>* RBTree<K, V>::Put(const K& key, const V& val)
 {
     auto t = root_;
     if (t == nullptr) {
-        auto entry = new Entry(key, value, nullptr);
+        auto entry = new Entry<K,V>(key, val, nullptr);
         size_ = 1;
         root_ = entry;
         return entry;
     }
     int cmp = 0;
-    Entry* parent = nullptr;
+    Entry<K, V>* parent = nullptr;
     while (true) {
         parent = t;
         if (key < t->key) {
-            t = t.left;
+            t = t->left;
             cmp = -1;
         }
         else if (t->key < key) {
-            t = t.right;
+            t = t->right;
             cmp = 1;
         }
         else {
@@ -155,18 +155,19 @@ Entry<K, V>* RBTree<K, V>::Put(const K& key, const V& val)
             return t;
         }
         if (t == nullptr) {
-            break
+            break;
         }
     }
-    auto e = new Entry(key, value, parent);
+    auto e = new Entry<K,V>(key, val, parent);
     if (cmp < 0) {
-        parent.left = e;
+        parent->left = e;
     }
     else {
-        parent.right = e;
+        parent->right = e;
     }
-    m.fixAfterInsertion(e);
-    m.size++
+    fixAfterInsertion(e);
+    size_++;
+    return nullptr;
 }
 
 template <typename K, typename V>

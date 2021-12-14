@@ -6,7 +6,7 @@
 
 #include "TimerBase.h"
 #include "RBTree.h"
-
+#include <unordered_map>
 
 // timer queue implemented with red-black tree.
 // complexity:
@@ -34,8 +34,10 @@ public:
     RBTreeTimer();
     ~RBTreeTimer();
 
-    int Start(uint32_t time_units, TimeoutAction action) override;
+    // start a timer after `ms` milliseconds
+    int Start(uint32_t ms, TimeoutAction action) override;
 
+    // stop a timer
     bool Stop(int timer_id) override;
 
     int Tick(int64_t now = 0) override;

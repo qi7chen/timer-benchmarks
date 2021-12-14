@@ -73,7 +73,7 @@ void HashedWheelBucket::purge()
 // add `timeout` to this bucket
 void HashedWheelBucket::AddTimeout(HashedWheelTimeout* timeout)
 {
-    assert(timeout != nullptr);
+    CHECK(timeout != nullptr);
     CHECK(timeout->bucket == nullptr);
     timeout->bucket = this;
     if (head == nullptr) {

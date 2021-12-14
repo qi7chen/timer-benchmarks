@@ -93,8 +93,10 @@ int QuatHeapTimer::deltimer(TimerNode& node)
         std::swap(heap_[i], heap_[n]);
         heap_[i].index = i;
     }
+    
     heap_.pop_back();
     ref_.erase(node.id);
+
     int smallest = i;
     if (i != n) {
         smallest = siftup(i);
@@ -102,6 +104,9 @@ int QuatHeapTimer::deltimer(TimerNode& node)
     }
     return smallest;
 }
+
+// Heap maintenance algorithms.
+// details see https://github.com/golang/go/blob/go1.16.12/src/runtime/time.go
 
 // `siftup` puts the timer at position i in the right place
 // in the heap by moving it up toward the top of the heap.

@@ -7,13 +7,8 @@
 #include "TimerBase.h"
 #include <vector>
 #include <unordered_map>
+#include "define.h"
 
-enum class TimeoutState
-{
-    Init = 0,
-    Cancelled = 1,
-    Expired = 2,
-};
 
 class HashedWheelTimer;
 class HashedWheelBucket;
@@ -29,13 +24,11 @@ public:
     HashedWheelTimeout(const HashedWheelTimeout&) = delete;
     HashedWheelTimeout& operator=(const HashedWheelTimeout&) = delete;
 
-    bool IsExpired() 
-    {
-        return state == TimeoutState::Init;
+    bool IsExpired() {
+        return state == TimeoutState::Expired;
     }
 
-    bool IsCanceled() 
-    {
+    bool IsCanceled() {
         return state == TimeoutState::Cancelled;
     }
 
@@ -45,6 +38,9 @@ public:
 
     bool operator < (const HashedWheelTimeout& b) const
     {
+        if (deadline == b.deadline) {
+            return id > b.id;
+        }
         return deadline < b.deadline;
     }
 
@@ -56,9 +52,9 @@ public:
     HashedWheelTimer* timer = nullptr;
 
     TimeoutState state = TimeoutState::Init;  // cancelled or expired
-    int32_t remaining_rounds = 0;
-    int64_t deadline = 0;
-    int id = 0;
+    int32_t remaining_rounds = 0;           // wheel round left
+    int64_t deadline = 0;                   // expired time in ms
+    int id = 0;                             // unique timer id
     TimeoutAction action = nullptr;
 };
 

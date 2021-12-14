@@ -5,7 +5,6 @@
 #include "PriorityQueueTimer.h"
 #include "Clock.h"
 
-#define HEAP_ITEM_LESS(i, j) (heap_[(i)].deadline < heap_[(j)].deadline)
 
 PriorityQueueTimer::PriorityQueueTimer()
 {
@@ -60,6 +59,7 @@ void PriorityQueueTimer::deltimer(TimerNode& node)
         std::swap(heap_[i], heap_[n]);
         heap_[i].index = i;
     }
+
     heap_.pop_back();
     ref_.erase(node.id);
 
@@ -113,10 +113,10 @@ bool PriorityQueueTimer::siftdown(int x, int n)
         }
         int j = j1; // left child
         int j2 = j1 + 1;
-        if (j2 < n && !HEAP_ITEM_LESS(j1, j2)) {
+        if (j2 < n && !(heap_[j1] < heap_[j2])) {
             j = j2; // right child
         }
-        if (!HEAP_ITEM_LESS(j, i)) {
+        if (!(heap_[j] < heap_[i])) {
             break;
         }
         std::swap(heap_[i], heap_[j]);
@@ -132,7 +132,7 @@ void PriorityQueueTimer::siftup(int j)
     for (;;)
     {
         int i = (j - 1) / 2; // parent node
-        if (i == j || !HEAP_ITEM_LESS(j, i)) {
+        if (i == j || !(heap_[j] < heap_[i])) {
             break;
         }
         std::swap(heap_[i], heap_[j]);

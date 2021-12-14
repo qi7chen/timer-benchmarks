@@ -6,20 +6,8 @@
 
 #include <stdint.h>
 #include <memory>
-#include <functional>
-#include <unordered_map>
+#include "define.h"
 
-// expiry action
-typedef std::function<void()> TimeoutAction;
-
-enum class TimerSchedType 
-{
-    TIMER_PRIORITY_QUEUE,
-    TIMER_QUAD_HEAP,
-    TIMER_RBTREE,
-    TIMER_HASHED_WHEEL,
-    TIMER_HH_WHEEL,
-};
 
 // basic operations of a timer 
 class TimerBase
@@ -31,12 +19,12 @@ public:
     TimerBase(const TimerBase&) = delete;
     TimerBase& operator=(const TimerBase&) = delete;
 
-    // schedule a timer to run after specified time units.
+    // schedule a timer to run after specified time units(milliseconds).
     // returns an unique id identify this timer.
-    virtual int Start(uint32_t time_units, TimeoutAction action) = 0;
+    virtual int Start(uint32_t ms, TimeoutAction action) = 0;
 
     // cancel a timer by id.
-    virtual bool Stop(int timerId) = 0;
+    virtual bool Stop(int timer_id) = 0;
 
     // per-tick bookkeeping.
     virtual int Tick(int64_t now = 0) = 0;

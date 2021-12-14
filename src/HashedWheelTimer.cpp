@@ -14,6 +14,7 @@ const int TICK_DURATION = 100; // milliseconds
 
 HashedWheelTimer::HashedWheelTimer()
 {
+    last_time_ = Clock::CurrentTimeMillis();
     wheel_.resize(WHEEL_SIZE);
     for (int i = 0; i < WHEEL_SIZE; i++) {
         wheel_[i] = new HashedWheelBucket();
@@ -36,10 +37,10 @@ void HashedWheelTimer::purge()
 }
 
 
-int HashedWheelTimer::Start(uint32_t time_units, TimeoutAction action)
+int HashedWheelTimer::Start(uint32_t ms, TimeoutAction action)
 {
     int id = nextId();
-    int64_t deadline = Clock::CurrentTimeMillis() + time_units;
+    int64_t deadline = Clock::CurrentTimeMillis() + ms;
     HashedWheelTimeout* timeout = new HashedWheelTimeout(this, id, deadline, action);
     timeouts_.push(timeout);
     ref_[id] = timeout;
@@ -61,9 +62,33 @@ bool HashedWheelTimer::Stop(int timer_id)
 
 int HashedWheelTimer::Tick(int64_t now)
 {
+    if (size_ == 0) 
+    {
+        return 0;
+    }
+    if (now == 0) {
+        now = Clock::CurrentTimeMillis();
+    }
+    int64_t elapsed = now - last_time_;
+    int64_t ticks = elapsed / TIME_UNIT;
+    if (ticks <= 0)
+    {
+        return 0;
+    }
+    last_time_ = now;
+    int fired = 0;
+    for (int64_t i = 0; i < ticks; i++)
+    {
+        fired += tick(now);
+    }
+    return fired;
+}
+
+int HashedWheelTimer::tick(int64_t now)
+{
     int64_t deadline = started_at_ + TICK_DURATION * (ticks_ + 1);
     if (now < deadline) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(deadline - now));
+        return 0;
     }
     int idx = ticks_ % (WHEEL_SIZE - 1);
     processCancelledTasks();
