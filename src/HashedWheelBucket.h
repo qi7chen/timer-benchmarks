@@ -16,23 +16,15 @@ class HashedWheelBucket;
 class HashedWheelTimeout
 {
 public:
-    HashedWheelTimeout(HashedWheelTimer* timer, int id, int64_t deadline, TimeoutAction aciton)
-        : timer(timer), id(id), deadline(deadline), action(aciton)
+    HashedWheelTimeout(int id, int64_t deadline, TimeoutAction aciton)
+        : id(id), deadline(deadline), action(aciton)
     {
     }
 
     HashedWheelTimeout(const HashedWheelTimeout&) = delete;
     HashedWheelTimeout& operator=(const HashedWheelTimeout&) = delete;
 
-    bool IsExpired() {
-        return state == TimeoutState::Expired;
-    }
 
-    bool IsCanceled() {
-        return state == TimeoutState::Cancelled;
-    }
-
-    bool Cancel();
     bool Expire();
     void Remove();
 
@@ -51,7 +43,6 @@ public:
     HashedWheelBucket* bucket = nullptr;
     HashedWheelTimer* timer = nullptr;
 
-    TimeoutState state = TimeoutState::Init;  // cancelled or expired
     int32_t remaining_rounds = 0;           // wheel round left
     int64_t deadline = 0;                   // expired time in ms
     int id = 0;                             // unique timer id
@@ -73,9 +64,9 @@ public:
     HashedWheelTimeout* Remove(HashedWheelTimeout* timeout);
     void ClearTimeouts(std::unordered_map<int, HashedWheelTimeout*>& set);
 
-    void purge();
-
 private:
+    friend class HashedWheelTimer;
+
     HashedWheelTimeout* pollTimeout();
 
     HashedWheelTimeout* head = nullptr;

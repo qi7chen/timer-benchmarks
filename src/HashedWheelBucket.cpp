@@ -8,43 +8,21 @@
 #include <assert.h>
 
 
-bool HashedWheelTimeout::Cancel()
-{
-    if (state == TimeoutState::Cancelled) {
-        return false;
-    }
-    if (state != TimeoutState::Init) {
-        return false;
-    }
-    state = TimeoutState::Cancelled;
-    timer->cancelled_timeouts_.push(this);
-    return true;
-}
-
 bool HashedWheelTimeout::Expire()
 {
-    if (state == TimeoutState::Expired) {
-        return false;
-    }
-    if (state != TimeoutState::Init) {
-        return false;
-    }
-    state = TimeoutState::Expired;
-
     // trigger timeout action
     if (action) {
         action();
+        action = nullptr;
+        return true;
     }
-    return true;
+    return false;
 }
 
 void HashedWheelTimeout::Remove()
 {
     if (bucket != nullptr) {
         bucket->Remove(this);
-    }
-    else {
-        timer->decrementPending();
     }
 }
 
@@ -54,21 +32,7 @@ HashedWheelBucket::HashedWheelBucket()
 
 HashedWheelBucket::~HashedWheelBucket()
 {
-    purge();
 }
-
-void HashedWheelBucket::purge()
-{
-    HashedWheelTimeout* node = head;
-    while (node != nullptr) {
-        node->Cancel();
-        HashedWheelTimeout* next = node->next;
-        delete node;
-        node = next;
-    }
-    head = tail = nullptr;
-}
-
 
 // add `timeout` to this bucket
 void HashedWheelBucket::AddTimeout(HashedWheelTimeout* timeout)
@@ -101,9 +65,6 @@ void HashedWheelBucket::ExpireTimeouts(int64_t deadline, std::vector<HashedWheel
                 // The timeout was placed into a wrong slot. This should never happen.
                 LOG(FATAL) << "timeout deadline";
             }
-        }
-        else if (timeout->IsCanceled()) {
-            next = Remove(timeout);
         }
         else {
             timeout->remaining_rounds--;
@@ -139,7 +100,6 @@ HashedWheelTimeout* HashedWheelBucket::Remove(HashedWheelTimeout* timeout)
     timeout->prev = nullptr;
     timeout->next = nullptr;
     timeout->bucket = nullptr;
-    timeout->timer->decrementPending();
     return next;
 }
 
@@ -151,9 +111,6 @@ void HashedWheelBucket::ClearTimeouts(std::unordered_map<int, HashedWheelTimeout
         HashedWheelTimeout* timeout = pollTimeout();
         if (timeout == nullptr) {
             break;
-        }
-        if (timeout->IsCanceled() || timeout->IsExpired()) {
-            continue;
         }
         set[timeout->id] = timeout;
     }

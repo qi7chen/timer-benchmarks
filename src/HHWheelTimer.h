@@ -14,9 +14,6 @@
 class HHWheelTimer : public TimerBase
 {
 public:
-
-
-public:
     HHWheelTimer();
     ~HHWheelTimer();
 

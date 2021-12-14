@@ -6,7 +6,6 @@
 
 #include "TimerBase.h"
 #include <vector>
-#include <queue>
 #include <unordered_map>
 
 class HashedWheelBucket;
@@ -30,32 +29,24 @@ public:
 
     int Size() const override
     {
-        return size_;
+        return (int)ref_.size();
     }
 
 private:
-
     friend class HashedWheelTimeout;
     friend class HashedWheelBucket;
 
-    void processCancelledTasks();
-    void transferTimeoutToBuckets();
-
     int tick(int64_t now);
-
     void purge();
+    void delTimeout(HashedWheelTimeout*);
 
-    void decrementPending()
-    {
-        size_--;
-    }
+    HashedWheelTimeout* allocTimeout(int id, int64_t deadline, TimeoutAction action);
+    void freeTimeout(HashedWheelTimeout*);
 
 private:
     std::vector<HashedWheelBucket*> wheel_;
-    std::queue<HashedWheelTimeout*> timeouts_;
-    std::queue<HashedWheelTimeout*> cancelled_timeouts_;
     std::unordered_map<int, HashedWheelTimeout*> ref_;
-    int size_ = 0;
+    
     int ticks_ = 0;
     int64_t started_at_ = 0;
     int64_t last_time_ = 0;
