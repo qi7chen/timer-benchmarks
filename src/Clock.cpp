@@ -16,18 +16,28 @@ int64_t Clock::clock_offset_ = 0;
 
 int64_t Clock::CurrentTimeMillis()
 {
-    auto now = std::chrono::steady_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    using namespace std::chrono;
+    auto now = system_clock::now();
+    auto ms = duration_cast<milliseconds>(now.time_since_epoch()).count();
     return ms + clock_offset_;
 }
 
-int64_t Clock::CurrentTimeUnits()
+void Clock::TimeReset()
 {
-    return CurrentTimeMillis() / TIME_UNIT;
+    clock_offset_ = 0;
+}
+
+void Clock::TimeFly(int64_t ms)
+{
+    clock_offset_ += ms;
 }
 
 std::string Clock::CurrentTimeString(int64_t timepoint)
 {
+    if (timepoint == 0)
+    {
+        timepoint = CurrentTimeMillis();
+    }
     time_t sec = timepoint / 1000;
     struct tm* pinfo = localtime(&sec); // make sure localtime has thread-safety
     char buffer[100] = {};
@@ -69,12 +79,3 @@ uint64_t Clock::GetNowTickCount()
 #endif
 }
 
-void Clock::TimeReset()
-{
-    clock_offset_ = 0;
-}
-
-void Clock::TimeFly(int64_t ms)
-{
-    clock_offset_ += ms;
-}
