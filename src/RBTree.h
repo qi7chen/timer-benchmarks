@@ -58,7 +58,7 @@ public:
         return std::make_pair(V(), false);
     }
 
-    bool Contains() const {
+    bool Contains(const K& key) const {
         auto p = getEntry(key);
         return p != nullptr;
     }
