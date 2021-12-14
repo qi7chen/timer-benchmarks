@@ -31,6 +31,7 @@
 #include "Logging.h"
 #include <cstdio>
 #include <cstring>
+#include <assert.h>
 #include <mutex>
 
 #ifdef _WIN32
@@ -41,7 +42,7 @@
 #ifdef _MSC_VER
 #define DEBUG_BREAK __debugbreak 
 #else
-#define DEBUG_BREAK
+#define DEBUG_BREAK assert(false)
 #endif
 
 using std::mutex;
