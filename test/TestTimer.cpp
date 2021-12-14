@@ -44,7 +44,7 @@ static void TestTimerAdd(TimerBase* timer, int count)
     std::this_thread::sleep_for(std::chrono::milliseconds(TIME_UNIT));
 
     EXPECT_EQ(timer->Size(), count);
-    int fired = timer->Tick();
+    int fired = timer->Tick(Clock::CurrentTimeMillis());
     EXPECT_EQ(fired, count);
     EXPECT_EQ(called, count);
     EXPECT_EQ(timer->Size(), 0);
@@ -55,7 +55,7 @@ static void TestTimerAdd(TimerBase* timer, int count)
         int id = timer->Start(0, callback);
         timer->Stop(id);
     }
-    fired = timer->Tick();
+    fired = timer->Tick(Clock::CurrentTimeMillis());
     EXPECT_EQ(fired, 0);
     EXPECT_EQ(timer->Size(), 0);
     EXPECT_EQ(called, 0);
@@ -71,7 +71,7 @@ static void TestTimerDel(TimerBase* timer, int count)
         called++;
     });
 
-    timer->Tick();
+    timer->Tick(Clock::CurrentTimeMillis());
     timer->Stop(tid);
 
     EXPECT_EQ(called, 0);
@@ -101,12 +101,13 @@ static void TestTimerExpire(TimerBase* timer, int count)
     EXPECT_EQ(timer->Size(), count);
 
     // execute all timers
-    printf("start execute timer at %lld\n", Clock::CurrentTimeMillis());
+    auto now = Clock::CurrentTimeString(Clock::CurrentTimeMillis());
+    printf("start execute timer at %s\n", now.c_str());
 
     int fired = 0;
     for (int i = 0; fired < count; i++)
     {
-        fired += timer->Tick();
+        fired += timer->Tick(Clock::CurrentTimeMillis());
         if (i > 0 && i % 100 == 0) {
             Clock::TimeFly(TIME_UNIT); // time faster
         }
@@ -179,7 +180,7 @@ TEST(TimerQuadHeap, TimerExecute)
     TestTimerExpire(timer.get(), N1);
 }
 
-///////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 
 TEST(TimerRBTree, TimerAdd)
 {
@@ -200,7 +201,7 @@ TEST(TimerRBTree, TimerExecute)
     TestTimerExpire(timer.get(), N1);
 }
 
-///////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 
 TEST(TimerHashedWheel, TimerAdd)
 {
@@ -221,8 +222,8 @@ TEST(TimerHashedWheel, TimerExecute)
     TestTimerExpire(timer.get(), N1);
 }
 
-///////////////////////////////////////////////////////////////////
-
+/////////////////////////////////////////////////////////////////////
+//
 TEST(TimerHHWheel, TimerAdd)
 {
     auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);

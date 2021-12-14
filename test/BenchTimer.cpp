@@ -43,7 +43,7 @@ inline void benchTick(std::shared_ptr<TimerBase> timer, int n)
 {
     for (int i = 0; i < n; i++)
     {
-        timer->Tick();
+        timer->Tick(Clock::CurrentTimeMillis());
     }
 }
 
