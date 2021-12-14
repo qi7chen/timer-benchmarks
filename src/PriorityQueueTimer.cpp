@@ -75,9 +75,6 @@ int PriorityQueueTimer::Tick(int64_t now)
     if (heap_.empty()) {
         return 0;
     }
-    if (now == 0) {
-        now = Clock::CurrentTimeMillis();
-    }
     int fired = 0;
     int max_id = next_id_;
     while (!heap_.empty()) {

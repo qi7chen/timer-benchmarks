@@ -49,10 +49,6 @@ int RBTreeTimer::Tick(int64_t now)
     {
         return 0;
     }
-    if (now == 0)
-    {
-        now = Clock::CurrentTimeMillis();
-    }
     auto entry = timers_.getFirstEntry();
     if (entry == nullptr) {
         return 0;

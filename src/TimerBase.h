@@ -27,7 +27,7 @@ public:
     virtual bool Stop(int timer_id) = 0;
 
     // per-tick bookkeeping.
-    virtual int Tick(int64_t now = 0) = 0;
+    virtual int Tick(int64_t now) = 0;
 
     // count of pengding timers.
     virtual int Size() const = 0;
