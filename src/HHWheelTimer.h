@@ -5,6 +5,8 @@
 #pragma once
 
 #include "TimerBase.h"
+#include "HHWheel.h"
+#include <unordered_map>
 
 // Hashed and Hierarchical Timing Wheels
 // see (http://www.cs.columbia.edu/~nahum/w6998/papers/sosp87-timing-wheels.pdf)
@@ -18,18 +20,24 @@ public:
     HHWheelTimer();
     ~HHWheelTimer();
 
-    int Start(uint32_t time_units, TimeoutAction action) override;
+    // start a timer after `ms` milliseconds
+    int Start(uint32_t ms, TimeoutAction action) override;
 
+    // stop a timer
     bool Stop(int timer_id) override;
 
     int Tick(int64_t now = 0) override;
 
     int Size() const override
     {
-        return 0; // TODO:
+        return (int)ref_.size();
     }
 
 private:
+    void deltimer(WheelTimerNode*);
 
-
+private:
+    int64_t last_time_ = 0;
+    HHTimingWheel wheel_;
+    std::unordered_map<int, WheelTimerNode*> ref_;
 };
