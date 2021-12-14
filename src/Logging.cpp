@@ -40,7 +40,7 @@
 #endif
 
 #ifdef _MSC_VER
-#define DEBUG_BREAK __debugbreak 
+#define DEBUG_BREAK __debugbreak()
 #else
 #define DEBUG_BREAK assert(false)
 #endif
@@ -92,7 +92,7 @@ void LogMessage::Finish() {
     }
 
     if (level_ == LOGLEVEL_FATAL) {
-        DEBUG_BREAK();
+        DEBUG_BREAK;
         abort();
     }
 }
