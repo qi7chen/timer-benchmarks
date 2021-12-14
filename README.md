@@ -1,8 +1,24 @@
 # timerqueue-benchmark
 
-分别使用最小堆、红黑树、时间轮实现定时器，再用随机数据对插入、删除、循环做性能测试。
+as [Hashed and Hierarchical Timing Wheels](http://www.cs.columbia.edu/~nahum/w6998/papers/sosp87-timing-wheels.pdf) implies
 
-关于定时器的简单介绍，可以参考[这篇文章](https://www.ibm.com/developerworks/cn/linux/l-cn-timers/index.html)
+a timer module has 3 component routines:
+
+``` C++
+// start a timer that will expire after `interval` unit of time
+int Start(interval, expiry_action)
+
+// use `tiemr_id` to locate a timer and stop it
+Stop(timer_id)
+
+// per-tick bookking routine
+Tick()
+```
+
+use [min-heap](https://en.wikipedia.org/wiki/Heap_(data_structure)), quaternary heap or [4-ary heap](https://en.wikipedia.org/wiki/D-ary_heap), balanced binary search tree or [red-black tree](https://en.wikipedia.org/wiki/Red-black_tree), hashed timing wheel 
+and Hierarchical timing wheel to model different time module 
+
+分别使用最小堆、四叉堆、红黑树、时间轮、层级时间轮实现定时器，测试插入、删除、Tick操作的性能。
 
 
 # 如何构建本项目
@@ -36,15 +52,14 @@
 复杂度比较：
 
 ```
-algo   | Add()    | Cancel() | Tick()   | implement
+algo   | Add()    | Cancel() | Tick()   | implemention
 --------------------------------------------------------
-最小堆 | O(log N) | O(N)     | O(1)     | src/PQTimer.h
-红黑树 | O(log N) | O(N)     | O(log N) | src/TreeTimer.h
-时间轮 | O(1)     | O(1)     | O(1)     | src/WheelTimer.h
+binary heap         | O(log N) | O(N)     | O(1)     | src/PriorityQueueTimer.h
+4-ary heap          | O(log N) | O(N)     | O(1)     | src/QuatHeapTimer.h
+redblack tree       | O(log N) | O(N)     | O(log N) | src/RBTreeTimer.h
+hashed timing wheel | O(1)     | O(1)     | O(1)     | src/HashedWheelTimer.h
+hierarchical timing wheel | O(1)     | O(1)     | O(1)     | src/HHWheelTimer.h
 ```
-
-最小堆和红黑树的Cancel均使用for遍历找到id做删除，所以都是O(N)复杂度。
-
 
 
 Hardware: Ryzen 5 3600X 6-Core 3.79 GHz
@@ -98,12 +113,14 @@ WheelTimerTick                                    46.78%     5.67ms   176.38
 
 # 结论
 
-* Windows和Linux两个平台有一些差异；
-* 相比之下，最小堆PerTick()性能消耗最少；
-* 最小堆的编码实现最简单，大多数编程语言都可以迅速实现，实现难度：最小堆 < 时间轮 < 红黑树；
 
 
-## TO-DO
 
-* 非STL版的红黑树实现；
-* 时间轮的删除实现；
+## 参考
+
+* [Hashed and Hierarchical Timing Wheels](https://paulcavallaro.com/blog/hashed-and-hierarchical-timing-wheels/)
+* [Hashed and Hierarchical Timing Wheels](http://www.cs.columbia.edu/~nahum/w6998/papers/sosp87-timing-wheels.pdf)
+* [Netty HashedWheelTimer](https://github.com/netty/netty/blob/4.1/common/src/main/java/io/netty/util/HashedWheelTimer.java)
+* [Apache Kafka, Purgatory, and Hierarchical Timing Wheels](https://www.confluent.io/blog/apache-kafka-purgatory-hierarchical-timing-wheels/s)
+
+
