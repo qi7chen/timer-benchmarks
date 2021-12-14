@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 enum Color
 {
     RED = 0,
@@ -65,6 +67,7 @@ public:
     {
         auto p = getEntry(key);
         if (p != nullptr) {
+            removeEntry(p);
             deleteEntry(p);
             return true;
         }
@@ -77,7 +80,12 @@ public:
     Entry<K, V>* getEntry(const K& key) const;
     Entry<K, V>* getFirstEntry() const;
     Entry<K, V>* getLastEntry() const;
-    void deleteEntry(Entry<K, V>* p);
+    void getEntries(std::vector<Entry<K, V>*>& out) const;
+
+    void removeEntry(Entry<K, V>* p);
+
+    Entry<K, V>* allocEntry(const K& key, const V& value, Entry<K, V>* parent);
+    Entry<K, V>* deleteEntry(Entry<K, V>* p);
 
 private:
     void rotateLeft(Entry<K,V>* p);

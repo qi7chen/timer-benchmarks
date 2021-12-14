@@ -45,6 +45,14 @@ bool RBTreeTimer::Stop(int timer_id)
 
 int RBTreeTimer::Tick(int64_t now)
 {
+    if (timers_.Size() == 0)
+    {
+        return 0;
+    }
+    if (now == 0)
+    {
+        now = Clock::CurrentTimeMillis();
+    }
     auto entry = timers_.getFirstEntry();
     if (entry == nullptr) {
         return 0;
@@ -69,13 +77,12 @@ int RBTreeTimer::Tick(int64_t now)
     {
         auto entry = timers_.getEntry(expired[i]);
         if (entry != nullptr) {
-            timers_.deleteEntry(entry);
-            if (entry->value)
-            {
-                (entry->value)();
-            }
+            TimeoutAction action = std::move(entry->value);
             ref_.erase(entry->key.id);
-            delete entry;
+            timers_.Remove(entry->key);
+            if (action) {
+                action();
+            }
         }
     }
     return fired;

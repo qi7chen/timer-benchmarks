@@ -66,7 +66,7 @@ inline Entry<K, V>* successor(Entry<K, V>* t)
     if (t == nullptr) {
         return nullptr;
     }
-    else if (t->right == nullptr) {
+    else if (t->right != nullptr) {
         auto p = t->right;
         while (p->left != nullptr) {
             p = p->left;
@@ -91,7 +91,7 @@ inline Entry<K, V>* predecessor(Entry<K, V>* t)
     if (t == nullptr) {
         return nullptr;
     }
-    else if (t->left == nullptr) {
+    else if (t->left != nullptr) {
         auto p = t->left;
         while (p->right != nullptr) {
             p = p->right;
@@ -118,14 +118,14 @@ Entry<K, V>* Entry<K, V>::next() {
 template <typename K, typename V>
 void RBTree<K, V>::Clear()
 {
-    auto node = getFirstEntry();
-    while (node != nullptr) {
-        auto next = successor(node);
-        delete node;
-        node = next;
-    }
+    std::vector<Entry<K, V>*> entries;
+    getEntries(entries);
     root_ = nullptr;
     size_ = 0;
+    for (int i = 0; i < entries.size(); i++)
+    {
+        deleteEntry(entries[i]);
+    }
 }
 
 template <typename K, typename V>
@@ -133,14 +133,14 @@ Entry<K, V>* RBTree<K, V>::Put(const K& key, const V& val)
 {
     auto t = root_;
     if (t == nullptr) {
-        auto entry = new Entry<K,V>(key, val, nullptr);
+        auto entry = allocEntry(key, val, nullptr);
         size_ = 1;
         root_ = entry;
         return entry;
     }
     int cmp = 0;
     Entry<K, V>* parent = nullptr;
-    while (true) {
+    do {
         parent = t;
         if (key < t->key) {
             t = t->left;
@@ -154,11 +154,9 @@ Entry<K, V>* RBTree<K, V>::Put(const K& key, const V& val)
             t->value = val;
             return t;
         }
-        if (t == nullptr) {
-            break;
-        }
-    }
-    auto e = new Entry<K,V>(key, val, parent);
+    } while (t != nullptr);
+
+    auto e = allocEntry(key, val, parent);
     if (cmp < 0) {
         parent->left = e;
     }
@@ -167,13 +165,14 @@ Entry<K, V>* RBTree<K, V>::Put(const K& key, const V& val)
     }
     fixAfterInsertion(e);
     size_++;
-    return nullptr;
+    return e;
 }
 
 template <typename K, typename V>
 Entry<K, V>* RBTree<K, V>::getEntry(const K& key) const
 {
     auto node = root_;
+    int height = 0;
     while (node != nullptr) {
         if (key < node->key) {
             node = node->left;
@@ -184,8 +183,21 @@ Entry<K, V>* RBTree<K, V>::getEntry(const K& key) const
         else {
             return node;
         }
+        height++;
     }
     return nullptr;
+}
+
+template <typename K, typename V>
+void RBTree<K, V>::getEntries(std::vector<Entry<K, V>*>& entries) const
+{
+    entries.resize(entries.size() + Size());
+    auto node = getFirstEntry();
+    while (node != nullptr) {
+        auto next = successor(node);
+        entries.push_back(node);
+        node = next;
+    }
 }
 
 template <typename K, typename V>
@@ -212,9 +224,8 @@ Entry<K, V>* RBTree<K, V>::getLastEntry() const
     return node;
 }
 
-
 template <typename K, typename V>
-void RBTree<K, V>::deleteEntry(Entry<K, V>* p)
+void RBTree<K, V>::removeEntry(Entry<K, V>* p)
 {
     size_--;
 
@@ -275,6 +286,20 @@ void RBTree<K, V>::deleteEntry(Entry<K, V>* p)
     }
 }
 
+template <typename K, typename V>
+Entry<K, V>* RBTree<K, V>::allocEntry(const K& key, const V& value, Entry<K, V>* parent)
+{
+    return new Entry<K, V>(key, value, parent);
+}
+
+template <typename K, typename V>
+Entry<K, V>* RBTree<K, V>::deleteEntry(Entry<K, V>* p)
+{
+    delete p;
+    return nullptr;
+}
+
+
 /**
  * Balancing operations.
  *
@@ -292,7 +317,7 @@ void RBTree<K, V>::rotateLeft(Entry<K, V>* p)
         return;
     }
     auto r = p->right;
-    p->right = r->right;
+    p->right = r->left;
     if (r->left != nullptr) {
         r->left->parent = p;
     }
