@@ -20,6 +20,17 @@ and Hierarchical timing wheel to model different time module
 
 分别使用最小堆、四叉堆、红黑树、时间轮、层级时间轮实现定时器，测试插入、删除、Tick操作的性能。
 
+## Big(O) complexity of algorithm
+
+
+algo                    | Start()    | Stop() | Tick()   | implemention file
+--------------------------|-----------|---------|----------|--------------------------
+binary heap               | O(log N) | O(log N) | O(1)     | [PriorityQueueTimer](src/PriorityQueueTimer.h)
+4-ary heap                | O(log N) | O(log N) | O(1)     | [QuatHeapTimer](src/QuatHeapTimer.h)
+redblack tree             | O(log N) | O(log N) | O(log N) | [RBTreeTimer](src/RBTreeTimer.h)
+hashed timing wheel       | O(1)     | O(1)     | O(1)     | [HashedWheelTimer](src/HashedWheelTimer.h)
+hierarchical timing wheel | O(1)     | O(1)     | O(1)     | [HHWheelTimer](src/HHWheelTimer.h)
+
 
 # How To Build
 
@@ -45,22 +56,10 @@ Visual C++ Compiler toolchain is necessary.
 
 # Benchmarks
 
-## Big(O) complexity of algorithm
-
-```
-  algo                    | Start()    | Stop() | Tick()   | implemention file
-------------------------------------------------------------------------------------
-binary heap               | O(log N) | O(log N) | O(1)     | src/PriorityQueueTimer.h
-4-ary heap                | O(log N) | O(log N) | O(1)     | src/QuatHeapTimer.h
-redblack tree             | O(log N) | O(log N) | O(log N) | src/RBTreeTimer.h
-hashed timing wheel       | O(1)     | O(1)     | O(1)     | src/HashedWheelTimer.h
-hierarchical timing wheel | O(1)     | O(1)     | O(1)     | src/HHWheelTimer.h
-```
-
 ## Benchmark result
 
 
-# Conclusion
+## Conclusion
 
 
 

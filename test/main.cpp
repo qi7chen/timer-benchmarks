@@ -14,12 +14,12 @@ int main(int argc, char* argv[])
 
     testing::InitGoogleTest(&argc, argv);
 
-    RUN_ALL_TESTS();
+    int r = RUN_ALL_TESTS();
 
     // only run benchmark in release mode
 #if defined(NDEBUG)
     runBenchmarks();
 #endif
 
-    return 0;
+    return r;
 }
