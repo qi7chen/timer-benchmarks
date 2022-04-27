@@ -247,6 +247,7 @@ void RBTree<K, V>::clear()
     getEntries(entries);
     root_ = nullptr;
     size_ = 0;
+    version_++;
     for (size_t i = 0; i < entries.size(); i++)
     {
         freeEntry(entries[i]);
@@ -257,6 +258,7 @@ template <typename K, typename V>
 void RBTree<K, V>::removeEntry(Entry<K, V>* p)
 {
     size_--;
+    version_++;
 
     // If strictly internal, copy successor's element to p and then make p
    // point to successor.

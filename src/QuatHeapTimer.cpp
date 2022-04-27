@@ -26,29 +26,30 @@ void QuatHeapTimer::clear()
 
 int QuatHeapTimer::Start(uint32_t ms, TimeoutAction action)
 {
+    int id = nextId();
     int64_t expire = Clock::CurrentTimeMillis() + ms;
     int i = (int)heap_.size();
 
     TimerNode node;
-    node.id = nextId();
+    node.id = id;
     node.deadline = expire;
     node.action = action;
     node.index = i;
 
     heap_.push_back(node);
-    siftup(i);
+    siftUp(i);
 
-    ref_[node.id] = node;
+    ref_[id] = node;
     return node.id;
 }
 
-bool QuatHeapTimer::Stop(int timer_id)
+bool QuatHeapTimer::Cancel(int timer_id)
 {
     auto iter = ref_.find(timer_id);
     if (iter == ref_.end()) {
         return false;
     }
-    deltimer(iter->second);
+    delTimer(iter->second);
     return true;
 }
 
@@ -61,16 +62,15 @@ int QuatHeapTimer::Tick(int64_t now)
     int max_id = next_id_;
     while (!heap_.empty()) {
         TimerNode& node = heap_.front();
-        if (now < node.deadline)
-        {
-            break;
+        if (now < node.deadline) {
+            break; // no more due timer to trigger
         }
-        // make sure we don't process timer created by timer events
+        // make sure we don't process newly created timer in timeout event
         if (node.id > max_id) {
             continue;
         }
         auto action = std::move(node.action);
-        deltimer(node);
+        delTimer(node);
         fired++;
 
         if (action) {
@@ -82,9 +82,10 @@ int QuatHeapTimer::Tick(int64_t now)
 
 // removes timer i from the current heap.
 // returns the smallest changed index.
-int QuatHeapTimer::deltimer(TimerNode& node)
+int QuatHeapTimer::delTimer(TimerNode& node)
 {
-    int n = (int)heap_.size() - 1; // last node
+    // swap with last element in heap array
+    int n = (int)heap_.size() - 1;
     int i = node.index;
     if (i != n) {
         std::swap(heap_[i], heap_[n]);
@@ -96,19 +97,19 @@ int QuatHeapTimer::deltimer(TimerNode& node)
 
     int smallest = i;
     if (i != n) {
-        smallest = siftup(i);
-        siftdown(i);
+        smallest = siftUp(i);
+        siftDown(i);
     }
     return smallest;
 }
 
 // Heap maintenance algorithms.
-// details see https://github.com/golang/go/blob/go1.16.12/src/runtime/time.go
+// details see https://github.com/golang/go/blob/go1.16.15/src/runtime/time.go
 
-// `siftup` puts the timer at position i in the right place
+// `siftUp` puts the timer at position i in the right place
 // in the heap by moving it up toward the top of the heap.
 // It returns the smallest changed index.
-int QuatHeapTimer::siftup(int i)
+int QuatHeapTimer::siftUp(int i)
 {
     CHECK(size_t(i) < heap_.size());
     int64_t when = heap_[i].deadline;
@@ -130,17 +131,16 @@ int QuatHeapTimer::siftup(int i)
     return i;
 }
 
-// `siftdown` puts the timer at position i in the right place
+// `siftDown` puts the timer at position i in the right place
 // in the heap by moving it down toward the bottom of the heap.
-void QuatHeapTimer::siftdown(int i)
+void QuatHeapTimer::siftDown(int i)
 {
     int n = int(heap_.size());
     CHECK(i < n);
     int64_t when = heap_[i].deadline;
     CHECK(when > 0);
     TimerNode tmp = heap_[i];
-    while (true)
-    {
+    while (true) {
         int c = i * 4 + 1; // left child
         int c3 = c + 2; // mid child
         if (c >= n) {

@@ -10,7 +10,12 @@
 
 // Hashed and Hierarchical Timing Wheels
 // see (http://www.cs.columbia.edu/~nahum/w6998/papers/sosp87-timing-wheels.pdf)
-
+//
+// timer scheduler implemented by hashed & hierachical wheels
+// complexity:
+//      StartTimer   CancelTimer   PerTick
+//       O(1)         O(1)          O(1)
+//
 class HHWheelTimer : public TimerBase
 {
 public:
@@ -20,8 +25,8 @@ public:
     // start a timer after `ms` milliseconds
     int Start(uint32_t ms, TimeoutAction action) override;
 
-    // stop a timer
-    bool Stop(int timer_id) override;
+    // cancel a timer
+    bool Cancel(int timer_id) override;
 
     int Tick(int64_t now = 0) override;
 

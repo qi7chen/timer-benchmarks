@@ -13,6 +13,12 @@ class HashedWheelTimeout;
 
 // A simple hashed wheel timer inspired by [Netty HashedWheelTimer]
 // see https://github.com/netty/netty/blob/4.1/common/src/main/java/io/netty/util/HashedWheelTimer.java
+//
+// timer scheduler implemented by hashed wheel
+// complexity:
+//      StartTimer   CancelTimer   PerTick
+//       O(1)         O(1)          O(1)
+//
 class HashedWheelTimer : public TimerBase
 {
 public:
@@ -22,8 +28,8 @@ public:
     // start a timer after `ms` milliseconds
     int Start(uint32_t ms, TimeoutAction action) override;
 
-    // stop a timer
-    bool Stop(int timer_id) override;
+    // cancel a timer
+    bool Cancel(int timer_id) override;
 
     int Tick(int64_t now = 0) override;
 

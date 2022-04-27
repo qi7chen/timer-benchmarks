@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2021 simon@qchen.fun. All rights reserved.
+// Copyright (C) 2021 simon@qchen.fun. All rights reserved.
 // Distributed under the terms and conditions of the Apache License. 
 // See accompanying files LICENSE.
 
@@ -10,14 +10,21 @@
 
 // Quaternary-ary heap
 // https://en.wikipedia.org/wiki/D-ary_heap
+// 
+// timer scheduler implemented by quaternary-ary heap
+//
+// complexity:
+//     StartTimer    CancelTimer   PerTick
+//      O(logN)      O(logN)          O(1)
+//
 class QuatHeapTimer : public TimerBase
 {
 public:
     struct TimerNode
     {
-        int index = -1;             // array index
-        int id = -1;                // unique timer id
-        int64_t deadline = 0;       // expired time in ms
+        int index = -1;    // array index
+        int id = -1;       // unique timer id
+        int64_t deadline = 0;  
         TimeoutAction action = nullptr;
 
         bool operator < (const TimerNode& b) const
@@ -36,8 +43,8 @@ public:
     // start a timer after `ms` milliseconds
     int Start(uint32_t ms, TimeoutAction action) override;
 
-    // stop a timer
-    bool Stop(int timer_id) override;
+    // cancel a timer
+    bool Cancel(int timer_id) override;
 
     int Tick(int64_t now = 0) override;
 
@@ -48,9 +55,9 @@ public:
 
 private:
     void clear();
-    int siftup(int i);
-    void siftdown(int i);
-    int deltimer(TimerNode& node);
+    int siftUp(int i);
+    void siftDown(int i);
+    int delTimer(TimerNode& node);
 
     std::vector<TimerNode>  heap_;
     std::unordered_map<int, TimerNode> ref_; // O(1) search

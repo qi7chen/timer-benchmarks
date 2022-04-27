@@ -59,7 +59,7 @@ int HHWheelTimer::Start(uint32_t ms, TimeoutAction action)
     return id;
 }
 
-bool HHWheelTimer::Stop(int timer_id)
+bool HHWheelTimer::Cancel(int timer_id)
 {
     auto iter = ref_.find(timer_id);
     if (iter == ref_.end()) {

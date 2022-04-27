@@ -19,7 +19,7 @@ TimerBase::~TimerBase()
 
 int TimerBase::nextId()
 {
-    return ++next_id_; // no duplicate checking here
+    return next_id_++; // we do no duplicate checking here
 }
 
 

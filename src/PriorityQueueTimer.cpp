@@ -25,34 +25,36 @@ void PriorityQueueTimer::clear()
 
 int PriorityQueueTimer::Start(uint32_t ms, TimeoutAction action)
 {
+    int id = nextId();
     int64_t expire = Clock::CurrentTimeMillis() + ms;
     int i = (int)heap_.size();
 
     TimerNode node;
-    node.id = nextId();
+    node.id = id;
     node.deadline = expire;
     node.action = action;
     node.index = i;
 
     heap_.push_back(node);
-    siftup(i);
+    siftUp(i);
 
-    ref_[node.id] = node;
+    ref_[id] = node;
     return node.id;
 }
 
-bool PriorityQueueTimer::Stop(int timer_id)
+bool PriorityQueueTimer::Cancel(int timer_id)
 {
     auto iter = ref_.find(timer_id);
     if (iter == ref_.end()) {
         return false;
     }
-    deltimer(iter->second);
+    delTimer(iter->second);
     return true;
 }
 
-void PriorityQueueTimer::deltimer(TimerNode& node)
+void PriorityQueueTimer::delTimer(TimerNode& node)
 {
+    // swap with last element of array
     int n = (int)heap_.size() - 1;
     int i = node.index;
     if (i != n) {
@@ -63,9 +65,10 @@ void PriorityQueueTimer::deltimer(TimerNode& node)
     heap_.pop_back();
     ref_.erase(node.id);
 
+    // re-balance heap
     if (i != n) {
-        if (!siftdown(i, n)) {
-            siftup(i);
+        if (!siftDown(i, n)) {
+            siftUp(i);
         }
     }
 }
@@ -80,14 +83,14 @@ int PriorityQueueTimer::Tick(int64_t now)
     while (!heap_.empty()) {
         TimerNode& node = heap_.front();
         if (now < node.deadline) {
-            return fired;
+            return fired; // no more due timer to trigger
         }
-        // make sure we don't process timer created by timer events
+        // make sure we don't process newly created timer in timeout event
         if (node.id > max_id) {
             continue;
         }
         auto action = std::move(node.action);
-        deltimer(node);
+        delTimer(node);
         fired++;
 
         if (action) {
@@ -98,11 +101,10 @@ int PriorityQueueTimer::Tick(int64_t now)
 }
 
 
-bool PriorityQueueTimer::siftdown(int x, int n)
+bool PriorityQueueTimer::siftDown(int x, int n)
 {
     int i = x;
-    for (;;)
-    {
+    for (;;) {
         int j1 = 2 * i + 1;
         // j1 < 0 after int overflow         
         if ((j1 >= n) || (j1 < 0)) {
@@ -111,7 +113,7 @@ bool PriorityQueueTimer::siftdown(int x, int n)
         int j = j1; // left child
         int j2 = j1 + 1;
         if (j2 < n && !(heap_[j1] < heap_[j2])) {
-            j = j2; // right child
+            j = j2; // = 2*i + 2right child
         }
         if (!(heap_[j] < heap_[i])) {
             break;
@@ -124,10 +126,9 @@ bool PriorityQueueTimer::siftdown(int x, int n)
     return i > x;
 }
 
-void PriorityQueueTimer::siftup(int j)
+void PriorityQueueTimer::siftUp(int j)
 {
-    for (;;)
-    {
+    for (;;) {
         int i = (j - 1) / 2; // parent node
         if (i == j || !(heap_[j] < heap_[i])) {
             break;

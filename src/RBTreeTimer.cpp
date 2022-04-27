@@ -18,7 +18,7 @@ RBTreeTimer::~RBTreeTimer()
 
 void RBTreeTimer::clear()
 {
-    timers_.Clear();
+    tree_.clear();
 }
 
 int RBTreeTimer::Start(uint32_t ms, TimeoutAction action)
@@ -27,29 +27,28 @@ int RBTreeTimer::Start(uint32_t ms, TimeoutAction action)
     NodeKey key;
     key.id = id;
     key.deadline = Clock::CurrentTimeMillis() + ms;
-    timers_.Put(key, action);
+    tree_.put(key, action);
     ref_[id] = key;
     return id;
 }
 
-bool RBTreeTimer::Stop(int timer_id)
+bool RBTreeTimer::Cancel(int timer_id)
 {
     auto iter = ref_.find(timer_id);
     if (iter == ref_.end()) {
         return false;
     }
-    timers_.Remove(iter->second);
+    tree_.remove(iter->second);
     ref_.erase(timer_id);
     return true;
 }
 
 int RBTreeTimer::Tick(int64_t now)
 {
-    if (timers_.Size() == 0)
-    {
+    if (tree_.size() == 0) {
         return 0;
     }
-    auto entry = timers_.getFirstEntry();
+    auto entry = tree_.getFirstEntry();
     if (entry == nullptr) {
         return 0;
     }
@@ -59,9 +58,9 @@ int RBTreeTimer::Tick(int64_t now)
     while (entry != nullptr)
     {
         if (now < entry->key.deadline) {
-            break;
+            break; // no more due timer to trigger
         }
-        // make sure we don't process timer created by timer events
+        // make sure we don't process newly created timer in timeout event
         if (entry->key.id > max_id) {
             continue;
         }
@@ -69,15 +68,14 @@ int RBTreeTimer::Tick(int64_t now)
         entry = entry->next();
     }
     int fired = (int)expired.size();
-    for (int i = 0; i < fired; i++)
-    {
-        auto entry = timers_.getEntry(expired[i]);
+    for (int i = 0; i < fired; i++) {
+        auto entry = tree_.getEntry(expired[i]);
         if (entry != nullptr) {
             TimeoutAction action = std::move(entry->value);
             ref_.erase(entry->key.id);
-            timers_.Remove(entry->key);
+            tree_.remove(entry->key);
             if (action) {
-                action();
+                action(); // timeout action
             }
         }
     }

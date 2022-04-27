@@ -8,23 +8,23 @@
 #include "RBTree.h"
 #include <unordered_map>
 
-// timer queue implemented with red-black tree.
+// timer scheduler implemented by red-black tree.
 // complexity:
-//      AddTimer   CancelTimer   PerTick
-//       O(log N)   O(N)          O(log N)
+//      StartTimer  CancelTimer   PerTick
+//       O(logN)     O(1)          O(logN)
 //
 class RBTreeTimer : public TimerBase
 {
 public:
     struct NodeKey
     {
-        int id = -1;
+        int id = 0;
         int64_t deadline = 0;
         
         bool operator < (const NodeKey& b) const
         {
             if (deadline == b.deadline) {
-                return id > b.id; // bigger id is later added
+                return id > b.id; 
             }
             return deadline < b.deadline;
         }
@@ -37,20 +37,24 @@ public:
     // start a timer after `ms` milliseconds
     int Start(uint32_t ms, TimeoutAction action) override;
 
-    // stop a timer
-    bool Stop(int timer_id) override;
+    // cancel a timer
+    bool Cancel(int timer_id) override;
 
     int Tick(int64_t now = 0) override;
 
     int Size() const override 
     { 
-        return timers_.Size();
+        return tree_.size();
     }
 
 private:
     void clear();
 
+    // a hashmap timer reference, to make O(1) lookup
     std::unordered_map<int, NodeKey> ref_;
-    RBTree<NodeKey, TimeoutAction> timers_;
+
+    // do our own rbtree algorithm to smoothing differences between different STL implementations,
+    // you may replace this with std::multimap<> instead
+    RBTree<NodeKey, TimeoutAction> tree_;
 };
 

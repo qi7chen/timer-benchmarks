@@ -9,10 +9,10 @@
 #include <unordered_map>
 
 
-// timer queue implemented with priority queue(min-heap)
+// timer scheduler implemented by priority queue(min-heap)
 //
 // complexity:
-//     AddTimer    CancelTimer   PerTick
+//     StartTimer  CancelTimer   PerTick
 //      O(log N)    O(N)          O(1)
 //
 class PriorityQueueTimer : public TimerBase
@@ -20,10 +20,10 @@ class PriorityQueueTimer : public TimerBase
 public:
     struct TimerNode
     {
-        int index = -1;         // array index
-        int id = -1;            // unique timer id
+        int index = -1;  // array index at heap
+        int id = 0;      // unique timer id
         int64_t deadline = 0;   // expired time in ms
-        TimeoutAction action = nullptr;
+        TimeoutAction action = nullptr; 
 
         bool operator < (const TimerNode& b) const
         {
@@ -41,8 +41,8 @@ public:
     // start a timer after `ms` milliseconds
     int Start(uint32_t ms, TimeoutAction action) override;
 
-    // stop a timer
-    bool Stop(int timer_id) override;
+    // cancel a timer
+    bool Cancel(int timer_id) override;
 
     int Tick(int64_t now = 0) override;
 
@@ -52,13 +52,15 @@ public:
     }
 
 private:
-    // DIY min-heap, you may try std::priority_queue
+    // do our own min-heap algorithm to smoothing differences between different STL implementations,
+    // you may replace this with std::priority_queue instead
     void clear();
-    bool siftdown(int x, int n);
-    void siftup(int j);
-    void deltimer(TimerNode& node);
+    bool siftDown(int x, int n);
+    void siftUp(int j);
+    void delTimer(TimerNode& node);
 
 private:
-    std::vector<TimerNode>  heap_;
-    std::unordered_map<int, TimerNode> ref_; // O(1) search
+    std::vector<TimerNode>  heap_; // timer heap
+
+    std::unordered_map<int, TimerNode> ref_; // a hashmap to make O(1) lookup
 };
