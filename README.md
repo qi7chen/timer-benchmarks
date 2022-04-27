@@ -15,8 +15,8 @@ void Stop(timer_id)
 int Tick(now)
 ```
 
-use [min-heap](https://en.wikipedia.org/wiki/Heap_(data_structure)), quaternary heap or [4-ary heap](https://en.wikipedia.org/wiki/D-ary_heap), balanced binary search tree or [red-black tree](https://en.wikipedia.org/wiki/Red-black_tree), hashed timing wheel 
-and Hierarchical timing wheel to model different time module 
+use [min-heap](https://en.wikipedia.org/wiki/Heap_(data_structure)), quaternary heap or [4-ary heap](https://en.wikipedia.org/wiki/D-ary_heap), balanced binary search tree or [red-black tree](https://en.wikipedia.org/wiki/Red-black_tree), hashed timing wheel
+and Hierarchical timing wheel to model different time module
 
 分别使用最小堆、四叉堆、红黑树、时间轮、层级时间轮实现定时器，测试插入、删除、Tick操作的性能。
 
@@ -36,21 +36,15 @@ hierarchical timing wheel | O(1)     | O(1)     | O(1)     | [HHWheelTimer](src/
 
 ### Obtain CMake
 
-Obtain[CMake](https://cmake.org/download/) first.
+Obtain [CMake](https://cmake.org) first.
 
+* `sudo apt install cmake` on ubuntu or debian
+* `sudo yum install cmake` on redhat or centos
+* `choco install cmake` on windows use [choco](https://chocolatey.org/)
 
-### Linux or [WSL](https://docs.microsoft.com/en-us/windows/wsl/install)
+run shell command
 
-* `make build`
-
-or 
-
-* `cmake -Bbuilds -DCMAKE_BUILD_TYPE=Release`
-* `cmake --build builds --config Release`
-
-### Windows
-
-Visual C++ Compiler toolchain is necessary.
+* `mkdir cmake-build; cd cmake-build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build .`
 
 
 
