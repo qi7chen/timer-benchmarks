@@ -35,7 +35,7 @@ inline void benchCancel(std::shared_ptr<TimerBase> timer, std::vector<int>& ids)
     std::random_shuffle(ids.begin(), ids.end());
     for (int i = 0; i < (int)ids.size(); i++)
     {
-        timer->Stop(ids[i]);
+        timer->Cancel(ids[i]);
     }
 }
 

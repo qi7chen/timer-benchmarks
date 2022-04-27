@@ -53,7 +53,7 @@ static void TestTimerAdd(TimerBase* timer, int count)
     for (int i = 0; i < count; i++)
     {
         int id = timer->Start(0, callback);
-        timer->Stop(id);
+        timer->Cancel(id);
     }
     fired = timer->Tick(Clock::CurrentTimeMillis());
     EXPECT_EQ(fired, 0);
@@ -72,7 +72,7 @@ static void TestTimerDel(TimerBase* timer, int count)
     });
 
     timer->Tick(Clock::CurrentTimeMillis());
-    timer->Stop(tid);
+    timer->Cancel(tid);
 
     EXPECT_EQ(called, 0);
 }
@@ -118,7 +118,7 @@ static void TestTimerExpire(TimerBase* timer, int count)
     std::vector<int> interval_tolerance;
     interval_tolerance.reserve(count);
 
-    for (int i = 0; i < fired_records.size(); i++)
+    for (size_t i = 0; i < fired_records.size(); i++)
     {
         const timerContext& ctx = fired_records[i];
         EXPECT_GE(ctx.fired_at, ctx.started_at + ctx.interval);
