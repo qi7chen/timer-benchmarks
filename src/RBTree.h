@@ -6,7 +6,7 @@
 
 #include <vector>
 
-enum Color
+enum class Color
 {
     RED = 0,
     BLACK = 1,
@@ -18,7 +18,7 @@ struct Entry
     Entry* left = nullptr;
     Entry* right = nullptr;
     Entry* parent = nullptr;
-    Color color = BLACK;
+    Color color = Color::BLACK;
     K key;
     V value;
 
@@ -38,18 +38,20 @@ class RBTree
 {
 public:
     RBTree() {}
-    ~RBTree() { Clear(); }
 
+    ~RBTree() {
+        clear();
+    }
+
+    // disallow copy and assign
     RBTree(const RBTree&) = delete;
     RBTree& operator=(const RBTree&) = delete;
 
-    int Size() const {
+    int size() const {
         return size_;
     }
 
-    void Clear();
-
-    std::pair<V, bool> Get(const K& key) const
+    std::pair<V, bool> get(const K& key) const
     {
         auto p = getEntry(key);
         if (p != nullptr) {
@@ -58,12 +60,20 @@ public:
         return std::make_pair(V(), false);
     }
 
-    bool Contains(const K& key) const {
+    bool contains(const K& key) const {
         auto p = getEntry(key);
         return p != nullptr;
     }
 
-    bool Remove(const K& key)
+    Entry<K, V>* getEntry(const K& key) const;
+    Entry<K, V>* getFirstEntry() const;
+    Entry<K, V>* getLastEntry() const;
+    void getEntries(std::vector<Entry<K, V>*>& out) const;
+
+    void put(const K& key, const V& val);
+    bool putIfAbsent(const K& key, const V& val);
+
+    bool remove(const K& key)
     {
         auto p = getEntry(key);
         if (p != nullptr) {
@@ -74,20 +84,17 @@ public:
         return false;
     }
 
-   
-    Entry<K, V>* Put(const K& key, const V& val);
-
-    Entry<K, V>* getEntry(const K& key) const;
-    Entry<K, V>* getFirstEntry() const;
-    Entry<K, V>* getLastEntry() const;
-    void getEntries(std::vector<Entry<K, V>*>& out) const;
-
     void removeEntry(Entry<K, V>* p);
+    void clear();
 
+private:
     Entry<K, V>* allocEntry(const K& key, const V& value, Entry<K, V>* parent);
     Entry<K, V>* freeEntry(Entry<K, V>* p);
 
-private:
+    void addEntry(const K& key, const V& val, Entry<K, V>* parent, bool add_left);
+    void addEntryToEmptyMap(const K& key, const V& val);
+    bool putEntry(const K& key, const V& val, bool replace);
+
     void rotateLeft(Entry<K,V>* p);
     void rotateRight(Entry<K, V>* p);
     void fixAfterInsertion(Entry<K, V>* p);
@@ -95,7 +102,8 @@ private:
 
 private:
     Entry<K, V>* root_ = nullptr;
-    int size_ = 0;
+    int size_ = 0;      // number of entries in the tree
+    int version_ = 0;   // number of structural modifications to the tree.
 };
 
 #include "RBTree-inl.h"
