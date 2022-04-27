@@ -184,11 +184,6 @@ void doNotOptimizeAway(const T& datum) {
   doNotOptimizeDependencySink(&datum);
 }
 
-template <typename T>
-void makeUnpredictable(T& datum) {
-  doNotOptimizeDependencySink(&datum);
-}
-
 #else
 
 namespace detail {
@@ -227,18 +222,6 @@ auto doNotOptimizeAway(const T& datum) -> typename std::enable_if<
   // block will read datum from memory, and that in addition it might read
   // or write from any memory location.  If the memory clobber could be
   // separated into input and output that would be preferrable.
-  asm volatile("" ::"m"(datum) : "memory");
-}
-
-template <typename T>
-auto makeUnpredictable(T& datum) -> typename std::enable_if<
-    !detail::DoNotOptimizeAwayNeedsIndirect<T>::value>::type {
-  asm volatile("" : "+r"(datum));
-}
-
-template <typename T>
-auto makeUnpredictable(T& datum) -> typename std::enable_if<
-    detail::DoNotOptimizeAwayNeedsIndirect<T>::value>::type {
   asm volatile("" ::"m"(datum) : "memory");
 }
 

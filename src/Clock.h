@@ -18,11 +18,10 @@ public:
     static std::string CurrentTimeString(int64_t timepoint);
 
     // Get current tick count, in nanoseconds
-    static uint64_t GetNowTickCount();
-
+    static int64_t GetNowTickCount();
     static void TimeFly(int64_t ms);
     static void TimeReset();
 
 private:
-    static int64_t clock_offset_; // logic clock
+    static int64_t clock_offset_; // offset time of logic clock
 };
