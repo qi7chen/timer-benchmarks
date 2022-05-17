@@ -6,8 +6,20 @@
 
 #include <stdint.h>
 #include <memory>
-#include "define.h"
+#include <functional>
 
+
+enum class TimerSchedType
+{
+    TIMER_PRIORITY_QUEUE,
+    TIMER_QUAD_HEAP,
+    TIMER_RBTREE,
+    TIMER_HASHED_WHEEL,
+    TIMER_HH_WHEEL,
+};
+
+// expiry action
+typedef std::function<void()> TimeoutAction;
 
 // we model 3 simple API for the construction and management of timers.
 // 

@@ -11,7 +11,7 @@
 // timer scheduler implemented by red-black tree.
 // complexity:
 //      StartTimer  CancelTimer   PerTick
-//       O(logN)     O(1)          O(logN)
+//       O(logN)     O(logN)      O(logN)
 //
 class RBTreeTimer : public TimerBase
 {

@@ -10,7 +10,8 @@
 #include "Logging.h"
 
 const int WHEEL_SIZE = 512;
-const int64_t TICK_DURATION = 100; // milliseconds
+const int64_t TICK_DURATION = 100;  // milliseconds
+const int64_t TIME_UNIT = 10;       // 10ms
 
 HashedWheelTimer::HashedWheelTimer()
 {

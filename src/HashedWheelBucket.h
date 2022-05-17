@@ -7,7 +7,6 @@
 #include "TimerBase.h"
 #include <vector>
 #include <unordered_map>
-#include "define.h"
 
 
 class HashedWheelTimer;
