@@ -1,15 +1,15 @@
 // Copyright (C) 2021 simon@qchen.fun. All rights reserved.
-// Distributed under the terms and conditions of the Apache License. 
+// Distributed under the terms and conditions of the Apache License.
 // See accompanying files LICENSE.
 
 #pragma once
 
 #include "TimerBase.h"
-#include "HHWheel.h"
+#include "HHUtil.h"
 #include <unordered_map>
 
 // Hashed and Hierarchical Timing Wheels
-// see (http://www.cs.columbia.edu/~nahum/w6998/papers/sosp87-timing-wheels.pdf)
+// see https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/kernel/time/timer.c?h=v5.10.116
 //
 // timer scheduler implemented by hashed & hierachical wheels
 // complexity:
@@ -28,7 +28,8 @@ public:
     // cancel a timer
     bool Cancel(int timer_id) override;
 
-    int Tick(int64_t now = 0) override;
+    // we assume 1 tick per ms
+    int Tick(int64_t ticks) override;
 
     int Size() const override
     {
@@ -36,27 +37,22 @@ public:
     }
 
 private:
-    friend struct WheelTimerNode;
-
-    bool AddNode(WheelTimerNode* node);
-    void Remove(WheelTimerNode* node);
-
-    void purgeBucket(WheelTimerBucket*);
     void purge();
-
-    bool Cascade(int bucket, int index);
-    int ExpireNear();
-    void ShiftLevel();
-    int tick();
-
-    void deltimer(WheelTimerNode*);
+    bool detach_if_pending(timer_list *timer, bool clear_pending);
+    void enqueue_timer(timer_list *timer, int idx);
+    void internal_add_timer(timer_list *timer);
+    bool del_timer(timer_list *timer);
+    int mod_timer(timer_list *timer, int64_t expires, bool pending_only);
+    int collect_expired(hlist_head *heads);
+    int expire_timers(hlist_head *heads);
 
 private:
     int64_t started_at_ = 0;
-    int64_t last_time_ = 0;
     int size_ = 0;
-    uint32_t currtick_ = 0;
-    WheelTimerBucket near_[TVR_SIZE];
-    WheelTimerBucket buckets_[4][TVN_SIZE];
-    std::unordered_map<int, WheelTimerNode*> ref_;
+    timer_list* running_timer_ = nullptr;
+    int64_t clk_; //  current tick
+    int64_t next_expiry = 0;
+    uint64_t pending_map_[BITS_TO_LONGS(WHEEL_SIZE)];
+    hlist_head	vectors_[WHEEL_SIZE];
+    std::unordered_map<int, timer_list*> ref_;
 };

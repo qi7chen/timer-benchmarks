@@ -6,10 +6,95 @@
 #include "Clock.h"
 #include "Logging.h"
 
+
+struct timer_list
+{
+    hlist_node entry;
+    int64_t expires = 0;
+    int index = -1;         // bucket index
+    int id = 0;             // unique id
+    TimeoutAction action;   // timeout action
+
+    void detach(bool clear_pending)
+    {
+        struct hlist_node *entry = &this->entry;
+
+        // debug_deactivate(timer);
+
+        __hlist_del(entry);
+        if (clear_pending) {
+            entry->pprev = NULL;
+        }
+        entry->next = NULL; // LIST_POISON2
+    }
+
+    bool is_pending()
+    {
+        return entry.pprev != nullptr;
+    }
+};
+
+
+/*
+ * Helper function to calculate the array index for a given expiry
+ * time.
+ */
+static inline unsigned calc_index(int64_t expires, unsigned lvl)
+{
+    expires = (expires + LVL_GRAN(lvl)) >> LVL_SHIFT(lvl);
+    return LVL_OFFS(lvl) + (expires & LVL_MASK);
+}
+
+
+static int calc_wheel_index(int64_t expires, int64_t clk)
+{
+    int64_t delta = expires - clk;
+    int idx = 0;
+    if (delta < 0) {
+        idx = clk & LVL_MASK;
+    }
+    else 	if (delta < LVL_START(1)) {
+        idx = calc_index(expires, 0);
+    }
+    else if (delta < LVL_START(2)) {
+        idx = calc_index(expires, 1);
+    }
+    else if (delta < LVL_START(3)) {
+        idx = calc_index(expires, 2);
+    }
+    else if (delta < LVL_START(4)) {
+        idx = calc_index(expires, 3);
+    }
+    else if (delta < LVL_START(5)) {
+        idx = calc_index(expires, 4);
+    }
+    else if (delta < LVL_START(6)) {
+        idx = calc_index(expires, 5);
+    }
+    else if (delta < LVL_START(7)) {
+        idx = calc_index(expires, 6);
+    }
+    else if (delta < LVL_START(8)) {
+        idx = calc_index(expires, 7);
+    }
+    else {
+        /*
+         * Force expire obscene large timeouts to expire at the
+         * capacity limit of the wheel.
+         */
+        if (delta >= WHEEL_TIMEOUT_CUTOFF)
+            expires = clk + WHEEL_TIMEOUT_MAX;
+
+        idx = calc_index(expires, LVL_DEPTH - 1);
+    }
+    return idx;
+}
+
+
 HHWheelTimer::HHWheelTimer()
 {
     started_at_ = Clock::CurrentTimeMillis();
-    last_time_ = started_at_;
+    purge();
 }
 
 
@@ -20,40 +105,26 @@ HHWheelTimer::~HHWheelTimer()
 
 void HHWheelTimer::purge()
 {
-    for (int i = 0; i < TVR_SIZE; i++)
+    size_ = 0;
+    running_timer_ = nullptr;
+    memset(&vectors_, 0, sizeof(vectors_));
+    for (auto iter = ref_.begin(); iter != ref_.end(); ++iter)
     {
-        purgeBucket(&near_[i]);
+        delete iter->second;
+        iter->second = nullptr;
     }
-    for (int i = 0; i < 4; i++)
-    {
-        for (int j = 0; j < TVN_SIZE; j++)
-        {
-            purgeBucket(&buckets_[i][j]);
-        }
-    }
+    ref_.clear();
 }
 
-void HHWheelTimer::purgeBucket(WheelTimerBucket* bucket)
-{
-    WheelTimerNode* node = bucket->head;
-    while (node != nullptr)
-    {
-        WheelTimerNode* next = node->next;
-        deltimer(node);
-        node = next;
-    }
-    bucket->head = nullptr;
-    bucket->tail = nullptr;
-}
 
 int HHWheelTimer::Start(uint32_t ms, TimeoutAction action)
 {
     int id = nextId();
-    WheelTimerNode* node = new WheelTimerNode();
+    timer_list* node = new timer_list();
     node->id = id;
     node->action = action;
-    node->deadline = Clock::CurrentTimeMillis() + ms;
-    AddNode(node);
+    node->expires = Clock::CurrentTimeMillis() + ms; // we assume time unit is ms
+    internal_add_timer(node);
     ref_[id] = node;
     size_++;
     return id;
@@ -65,139 +136,153 @@ bool HHWheelTimer::Cancel(int timer_id)
     if (iter == ref_.end()) {
         return false;
     }
-    deltimer(iter->second);
-    return true;
+    return del_timer(iter->second);
 }
 
-void HHWheelTimer::deltimer(WheelTimerNode* node)
+int HHWheelTimer::Tick(int64_t ticks)
 {
-    size_--;
-    node->Remove();
-    ref_.erase(node->id);
-    delete node;
-}
-
-
-int HHWheelTimer::Tick(int64_t now)
-{
-    if (Size() == 0)
-    {
+    // time_after_eq
+    if (ticks < clk_) {
         return 0;
     }
-    int64_t elapsed = now - last_time_;
-    int64_t ticks = elapsed / TIME_UNIT;
-    if (ticks <= 0) 
-    {
-        return 0;
-    }
-    last_time_ = now;
     int fired = 0;
-    for (int64_t i = 0; i < ticks; i++)
+    hlist_head heads[LVL_DEPTH] = {};
+    while (ticks >= clk_)
     {
-        fired += tick();
+        int levels = collect_expired(heads);
+        clk_++;
+        while (levels--)
+        {
+            fired += expire_timers(&heads[levels]);
+        }
     }
+    running_timer_ = nullptr;
     return fired;
 }
 
-
-bool HHWheelTimer::AddNode(WheelTimerNode* node)
+int HHWheelTimer::collect_expired(hlist_head *heads)
 {
-    CHECK(node->bucket == nullptr);
-    int64_t ticks = (node->deadline - started_at_) / TIME_UNIT;
-    WheelTimerBucket* bucket = nullptr;
-    if (ticks < TVR_SIZE)
+    int64_t clk = clk_;
+    int levels = 0;
+    for (int i = 0; i < LVL_DEPTH; i++)
     {
-        int i = ticks & TVR_MASK;
-        bucket = &near_[i];
-    }
-    else
-    {
-        for (int i = 0; i < 4; i++)
+        int idx = (clk & LVL_MASK) + 1 * LVL_SIZE;
+        if (test_and_clear_bit(idx, pending_map_))
         {
-            int64_t size = 1ULL << (TVR_BITS + (i + 1) * TVN_BITS);
-            if (ticks < size)
-            {
-                int idx = (ticks >> (TVR_BITS + (i)*TVN_BITS)) & TVN_MASK;
-                bucket = &buckets_[i][idx];
-            }
+            hlist_head *vec = &vectors_[idx];
+            hlist_move_list(vec, heads++);
+            levels++;
         }
-    }
-    bucket->AddNode(node);
-    return true;
-}
-
-void HHWheelTimer::Remove(WheelTimerNode* node)
-{
-    CHECK(node != nullptr);
-    CHECK(node->bucket != NULL);
-    node->bucket->Remove(node);
-}
-
-bool HHWheelTimer::Cascade(int level, int index)
-{
-    WheelTimerNode* node = buckets_[level][index].Splice();
-    while (node != nullptr)
-    {
-        WheelTimerNode* next = node;
-        node->prev = nullptr;
-        node->next = nullptr;
-        node->bucket = nullptr;
-        AddNode(node);
-        node = next;
-    }
-    return index == 0;
-}
-
-int HHWheelTimer::ExpireNear()
-{
-    int count = 0;
-    int idx = currtick_ & TVR_MASK;
-    WheelTimerBucket* bucket = &near_[idx];
-    WheelTimerNode* node = bucket->Splice();
-    while (node != nullptr)
-    {
-        WheelTimerNode* next = node->next;
-        node->Expire();
-        deltimer(node);
-        count++;
-        node = next;
-    }
-    return count;
-}
-
-void HHWheelTimer::ShiftLevel()
-{
-    if (currtick_ == 0)
-    {
-        Cascade(3, 0);
-        return;
-    }
-    int mask = TVR_SIZE;
-    uint32_t tz = currtick_ >> TVR_BITS;
-    int i = 0;
-    while ((currtick_ & (mask - 1)) == 0)
-    {
-        int idx = tz & TVN_MASK;
-        if (idx != 0)
-        {
-            Cascade(i, idx);
+        /* Is it time to look at the next level? */
+        if (clk & LVL_CLK_MASK)
             break;
-        }
-        mask <<= TVN_BITS;
-        tz >>= TVN_BITS;
-        i++;
+        /* Shift clock for the next level granularity */
+        clk >>= LVL_CLK_SHIFT;
     }
+    return levels;
 }
 
-// implementation inspired by skynet_timer.c
-// see https://github.com/cloudwu/skynet/blob/v1.5.0/skynet-src/skynet_timer.c
-int HHWheelTimer::tick()
+
+int HHWheelTimer::expire_timers(hlist_head *head)
 {
     int count = 0;
-    count += ExpireNear(); // try to dispatch timeout 0 (rare condition)
-    currtick_++;
-    ShiftLevel();
-    count += ExpireNear();
+    while (!hlist_empty(head))
+    {
+        timer_list* timer = hlist_entry(head->first, timer_list, entry);
+        running_timer_ = timer;
+        timer->detach(true);
+        timer->action();
+    }
     return count;
 }
 
+bool HHWheelTimer::detach_if_pending(timer_list *timer, bool clear_pending)
+{
+    int idx = timer->index;
+    if (timer->is_pending()) {
+        return 0;
+    }
+    if (hlist_is_singular_node(&timer->entry, &vectors_[idx]))
+    {
+        clear_bit(idx, pending_map_);
+    }
+    timer->detach(clear_pending);
+}
+
+
+void HHWheelTimer::enqueue_timer(timer_list *timer, int idx)
+{
+    hlist_add_head(&timer->entry, &vectors_[idx]);
+    set_bit(idx, pending_map_);
+    timer->index = idx;
+}
+
+void HHWheelTimer::internal_add_timer(timer_list *timer)
+{
+    int idx = calc_wheel_index(timer->expires, clk_);
+    enqueue_timer(timer, idx);
+}
+
+bool HHWheelTimer::del_timer(timer_list *timer)
+{
+    if (timer->is_pending())
+    {
+        return detach_if_pending(timer, true);
+    }
+    return false;
+}
+
+int HHWheelTimer::mod_timer(timer_list *timer, int64_t expires, bool pending_only)
+{
+    int idx = INT_MAX;
+    int64_t clk = 0;
+    /*
+     * if the timer is re-modified to have the same timeout or ends up in the
+     * same array bucket then just return:
+     */
+    if (timer->is_pending()) {
+        /*
+         * The downside of this optimization is that it can result in
+         * larger granularity than you would get from adding a new
+         * timer with this expiry.
+         */
+        if (timer->expires == expires) {
+            return 1;
+        }
+
+        clk = clk_;
+        idx = calc_wheel_index(expires, clk);
+
+        /*
+		 * Retrieve and compare the array index of the pending
+		 * timer. If it matches set the expiry to the new value so a
+		 * subsequent call will exit in the expires check above.
+		 */
+        if (idx == timer->index) {
+            timer->expires = expires;
+            return 1;
+        }
+    }
+
+    bool ret = detach_if_pending(timer, false);
+    if (!ret && pending_only) {
+        return ret;
+    }
+
+    timer->expires = expires;
+
+    /*
+     * If 'idx' was calculated above and the base time did not advance
+     * between calculating 'idx' and possibly switching the base, only
+     * enqueue_timer() and trigger_dyntick_cpu() is required. Otherwise
+     * we need to (re)calculate the wheel index via
+     * internal_add_timer().
+     */
+    if (idx != INT_MAX && clk == clk_) {
+        enqueue_timer(timer, idx);
+    }
+    else {
+        internal_add_timer(timer);
+    }
+    return ret;
+}
