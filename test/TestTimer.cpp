@@ -41,7 +41,7 @@ static void TestTimerAdd(TimerBase* timer, int count)
     }
     
     // to make sure timing-wheel trigger all timers at next time unit
-    std::this_thread::sleep_for(std::chrono::milliseconds(TIME_UNIT));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     EXPECT_EQ(timer->Size(), count);
     int fired = timer->Tick(Clock::CurrentTimeMillis());
@@ -109,7 +109,7 @@ static void TestTimerExpire(TimerBase* timer, int count)
     {
         fired += timer->Tick(Clock::CurrentTimeMillis());
         if (i > 0 && i % 100 == 0) {
-            Clock::TimeFly(TIME_UNIT); // time faster
+            Clock::TimeFly(10); // time faster
         }
     }
 
