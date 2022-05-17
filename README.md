@@ -19,7 +19,8 @@ void Cancel(timer_id)
 int Tick(now)
 ```
 
-use [min-heap](https://en.wikipedia.org/wiki/Heap_(data_structure)), quaternary heap or [4-ary heap](https://en.wikipedia.org/wiki/D-ary_heap), balanced binary search tree or [red-black tree](https://en.wikipedia.org/wiki/Red-black_tree), hashed timing wheel
+use [min-heap](https://en.wikipedia.org/wiki/Heap_(data_structure)), quaternary heap( [4-ary heap](https://en.wikipedia.org/wiki/D-ary_heap) ),
+balanced binary search tree( [red-black tree](https://en.wikipedia.org/wiki/Red-black_tree) ), hashed timing wheel
 and Hierarchical timing wheel to implement different time scheduler.
 
 
