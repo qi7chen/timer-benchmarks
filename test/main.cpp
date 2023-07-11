@@ -1,3 +1,7 @@
+// Copyright (C) 2022 ichenq@gmail.com. All rights reserved.
+// Distributed under the terms and conditions of the Apache License. 
+// See accompanying files LICENSE.
+
 #include <iostream>
 #include <time.h>
 #include <stdlib.h>

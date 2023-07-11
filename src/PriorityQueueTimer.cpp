@@ -1,4 +1,4 @@
-// Copyright (C) 2018 simon@qchen.fun. All rights reserved.
+// Copyright (C) 2022 ichenq@gmail.com. All rights reserved.
 // Distributed under the terms and conditions of the Apache License. 
 // See accompanying files LICENSE.
 
@@ -83,11 +83,11 @@ int PriorityQueueTimer::Tick(int64_t now)
     while (!heap_.empty()) {
         TimerNode& node = heap_.front();
         if (now < node.deadline) {
-            return fired; // no more due timer to trigger
+            break; // no more due timer to trigger
         }
         // make sure we don't process newly created timer in timeout event
         if (node.id > max_id) {
-            continue;
+            break;
         }
         auto action = std::move(node.action);
         delTimer(node);
