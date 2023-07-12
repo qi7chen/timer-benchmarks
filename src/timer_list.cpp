@@ -1,3 +1,5 @@
+// Distributed under GPLv3 license, see accompanying files LICENSE
+
 #include "timer_list.h"
 #include <assert.h>
 
