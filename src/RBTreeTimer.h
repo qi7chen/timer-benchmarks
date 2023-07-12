@@ -33,6 +33,11 @@ public:
     RBTreeTimer();
     ~RBTreeTimer();
 
+    TimerSchedType Type() const override
+    {
+        return TimerSchedType::TIMER_RBTREE;
+    }
+
     // start a timer after `ms` milliseconds
     int Start(uint32_t ms, TimeoutAction action) override;
 

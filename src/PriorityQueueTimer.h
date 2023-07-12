@@ -37,6 +37,11 @@ public:
     PriorityQueueTimer();
     ~PriorityQueueTimer();
 
+    TimerSchedType Type() const override
+    {
+        return TimerSchedType::TIMER_PRIORITY_QUEUE;
+    }
+
     // start a timer after `ms` milliseconds
     int Start(uint32_t ms, TimeoutAction action) override;
 

@@ -10,11 +10,11 @@
 
 enum class TimerSchedType
 {
-    TIMER_PRIORITY_QUEUE,
-    TIMER_QUAD_HEAP,
-    TIMER_RBTREE,
-    TIMER_HASHED_WHEEL,
-    TIMER_HH_WHEEL,
+    TIMER_PRIORITY_QUEUE = 1,
+    TIMER_QUAD_HEAP = 2,
+    TIMER_RBTREE = 3,
+    TIMER_HASHED_WHEEL = 4,
+    TIMER_HH_WHEEL = 5,
 };
 
 // expiry action
@@ -39,6 +39,8 @@ public:
 
     TimerBase(const TimerBase&) = delete;
     TimerBase& operator=(const TimerBase&) = delete;
+
+    virtual TimerSchedType Type() const = 0;
 
     // schedule a timer to run after specified time units(milliseconds).
     // returns an unique id identify this timer.

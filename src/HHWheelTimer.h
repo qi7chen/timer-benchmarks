@@ -24,6 +24,11 @@ public:
     HHWheelTimer();
     ~HHWheelTimer();
 
+    TimerSchedType Type() const override
+    {
+        return TimerSchedType::TIMER_HH_WHEEL;
+    }
+
     // start a timer after `duration` milliseconds
     int Start(uint32_t duration, TimeoutAction action) override;
 

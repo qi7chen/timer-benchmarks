@@ -39,6 +39,11 @@ public:
     QuatHeapTimer();
     ~QuatHeapTimer();
 
+    TimerSchedType Type() const override
+    {
+        return TimerSchedType::TIMER_QUAD_HEAP;
+    }
+
     // start a timer after `ms` milliseconds
     int Start(uint32_t ms, TimeoutAction action) override;
 

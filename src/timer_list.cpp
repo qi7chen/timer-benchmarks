@@ -104,7 +104,7 @@ static int detach_if_pending(struct timer_list* timer, struct tvec_base* base, b
 
 static inline int __mod_timer(struct timer_list* timer, int64_t expires, bool pending_only)
 {
-    assert(!timer->function);
+    assert(timer->function);
     int ret = detach_if_pending(timer, timer->base, false);
     if (!ret && pending_only) {
         return ret;

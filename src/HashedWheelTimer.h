@@ -24,6 +24,11 @@ public:
     HashedWheelTimer();
     ~HashedWheelTimer();
 
+    TimerSchedType Type() const override
+    {
+        return TimerSchedType::TIMER_HASHED_WHEEL;
+    }
+
     // start a timer after `ms` milliseconds
     int Start(uint32_t ms, TimeoutAction action) override;
 
