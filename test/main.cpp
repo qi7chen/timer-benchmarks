@@ -5,10 +5,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <gtest/gtest.h>
-#include "Benchmark.h"
-
-using std::cout;
-using std::endl;
+#include <benchmark/benchmark.h>
 
 
 int main(int argc, char* argv[])
@@ -20,9 +17,14 @@ int main(int argc, char* argv[])
     int r = RUN_ALL_TESTS();
 
     // only run benchmark in release mode
+    benchmark::Initialize(&argc, argv);
 #if defined(NDEBUG)
-    runBenchmarks();
+    if (benchmark::ReportUnrecognizedArguments(argc, argv)) {
+        return 1;
+    }
+    benchmark::RunSpecifiedBenchmarks();                              
 #endif
+    benchmark::Shutdown();
 
     return r;
 }

@@ -5,288 +5,177 @@
 #include <algorithm>
 #include "TimerBase.h"
 #include "Clock.h"
-#include "Benchmark.h"
+#include "Preprocessor.h"
+#include <benchmark/benchmark.h>
 #include <vector>
 
 using namespace std;
 
-const int MaxN = 50000;   // max node count
+const int MaxN = 50000;   // max timer count
 
-// Add timer with random duration 
-inline void fillTimer(std::shared_ptr<TimerBase> timer, std::vector<int>& ids, int n)
-{
-    std::vector<int> durations;
-    for (int i = 0; i < n; i++)
-    {
-        durations.push_back(i);
-    }
-    std::random_shuffle(durations.begin(), durations.end());
+// see https://en.wikipedia.org/wiki/Linear_congruential_generator
+uint32_t lcg_seed(uint32_t seed) {
+    return seed * 214013 + 2531011;
+}
+
+uint32_t lcg_rand(uint32_t& seed) {
+    seed = seed * 214013 + 2531011;
+    uint32_t r = uint32_t(seed >> 16) & 0x7fff;
+    return r;
+}
+
+static std::shared_ptr<TimerBase> createAndStartTimer(TimerSchedType timerType, benchmark::State& state) {
+    uint32_t seed = lcg_seed(12345);
+
+    auto timer = CreateTimer(timerType);
     auto dummy = []() {};
-    for (int i = 0; i < (int)durations.size(); i++)
+    for (auto _ : state)
     {
-        int id = timer->Start(durations[i], dummy);
-        ids.push_back(id);
+        uint32_t duration = lcg_rand(seed) % 5000;
+        timer->Start(duration, dummy);
     }
+    return timer;
 }
 
-// Cancel timers with random timer id
-inline void benchCancel(std::shared_ptr<TimerBase> timer, std::vector<int>& ids)
+static void BM_PQTimerAdd(benchmark::State& state)
 {
-    std::random_shuffle(ids.begin(), ids.end());
-    for (int i = 0; i < (int)ids.size(); i++)
-    {
-        timer->Cancel(ids[i]);
-    }
+    auto timer = createAndStartTimer(TimerSchedType::TIMER_PRIORITY_QUEUE, state);
+    doNotOptimizeAway(timer);
 }
 
-inline void benchTick(std::shared_ptr<TimerBase> timer, int n)
+static void BM_QuadHeapTimerAdd(benchmark::State& state)
 {
-    for (int i = 0; i < n; i++)
+    auto timer = createAndStartTimer(TimerSchedType::TIMER_QUAD_HEAP, state);
+    doNotOptimizeAway(timer);
+}
+
+static void BM_RBTreeTimerAdd(benchmark::State& state)
+{
+    auto timer = createAndStartTimer(TimerSchedType::TIMER_RBTREE, state);
+    doNotOptimizeAway(timer);
+}
+
+static void BM_HashWheelTimerAdd(benchmark::State& state)
+{
+    auto timer = createAndStartTimer(TimerSchedType::TIMER_HASHED_WHEEL, state);
+    doNotOptimizeAway(timer);
+}
+
+static void BM_HHWheelTimerAdd(benchmark::State& state)
+{
+    auto timer = createAndStartTimer(TimerSchedType::TIMER_HH_WHEEL, state);
+    doNotOptimizeAway(timer);
+}
+
+BENCHMARK(BM_PQTimerAdd);
+//BENCHMARK(BM_QuadHeapTimerAdd);
+BENCHMARK(BM_RBTreeTimerAdd);
+BENCHMARK(BM_HashWheelTimerAdd);
+BENCHMARK(BM_HHWheelTimerAdd);
+
+
+static std::shared_ptr<TimerBase> createAndFillTimer(TimerSchedType timerType, int N, vector<int>& out) {
+    uint32_t seed = lcg_seed(12345);
+    auto timer = CreateTimer(timerType);
+    auto dummy = []() {};
+    for (int i = 0; i < N; i++)
+    {
+        uint32_t duration = lcg_rand(seed) % 5000;
+        int tid = timer->Start(duration, dummy);
+        out.push_back(tid);
+    }
+    std::random_shuffle(out.begin(), out.end());
+    return timer;
+}
+
+static void benchTimerCancel(TimerSchedType timerType, benchmark::State& state)
+{
+    vector<int> timer_ids;
+    timer_ids.reserve(MaxN);
+    auto timer = createAndFillTimer(timerType, MaxN, timer_ids);
+    for (auto _ : state)
+    {
+        if (timer_ids.empty()) {
+            break;
+        }
+        int timer_id = timer_ids.back();
+        timer_ids.pop_back();
+        timer->Cancel(timer_id);
+    }
+    doNotOptimizeAway(timer);
+}
+
+static void BM_PQTimerCancel(benchmark::State& state) {
+
+    benchTimerCancel(TimerSchedType::TIMER_PRIORITY_QUEUE, state);
+}
+
+static void BM_QuadHeapTimerCancel(benchmark::State& state) {
+
+    benchTimerCancel(TimerSchedType::TIMER_QUAD_HEAP, state);
+}
+
+static void BM_RBTreeTimerCancel(benchmark::State& state) {
+
+    benchTimerCancel(TimerSchedType::TIMER_RBTREE, state);
+}
+
+static void BM_HashWheelTimerCancel(benchmark::State& state) {
+
+    benchTimerCancel(TimerSchedType::TIMER_HASHED_WHEEL, state);
+}
+
+static void BM_HHWheelTimerCancel(benchmark::State& state) {
+
+    benchTimerCancel(TimerSchedType::TIMER_HH_WHEEL, state);
+}
+
+BENCHMARK(BM_PQTimerCancel);
+//BENCHMARK(BM_QuadHeapTimerCancel);
+BENCHMARK(BM_RBTreeTimerCancel);
+BENCHMARK(BM_HashWheelTimerCancel);
+BENCHMARK(BM_HHWheelTimerCancel);
+
+
+static void benchTimerTick(TimerSchedType timerType, benchmark::State& state)
+{
+    vector<int> timer_ids;
+    timer_ids.reserve(MaxN);
+    auto timer = createAndFillTimer(timerType, MaxN, timer_ids);
+    for (auto _ : state)
     {
         timer->Tick(Clock::CurrentTimeMillis());
     }
-}
-
-
-BENCHMARK(PQTimerAdd, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_PRIORITY_QUEUE);
-    std::vector<int> ids;
-
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-    }
-
-    fillTimer(timer, ids, MaxN);
-
     doNotOptimizeAway(timer);
 }
 
-BENCHMARK_RELATIVE(QuadHeapTimerAdd, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_RBTREE);
-    std::vector<int> ids;
+static void BM_PQTimerTick(benchmark::State& state) {
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-    }
-
-    fillTimer(timer, ids, MaxN);
-
-    doNotOptimizeAway(timer);
+    benchTimerTick(TimerSchedType::TIMER_PRIORITY_QUEUE, state);
 }
 
-BENCHMARK_RELATIVE(RBTreeTimerAdd, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_RBTREE);
-    std::vector<int> ids;
+static void BM_QuadHeapTimerTick(benchmark::State& state) {
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-    }
-
-    fillTimer(timer, ids, MaxN);
-
-    doNotOptimizeAway(timer);
+    benchTimerTick(TimerSchedType::TIMER_QUAD_HEAP, state);
 }
 
-BENCHMARK_RELATIVE(HashedWheelTimerAdd, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_HASHED_WHEEL);
-    std::vector<int> ids;
+static void BM_RBTreeTimerTick(benchmark::State& state) {
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-    }
-
-    fillTimer(timer, ids, MaxN);
-
-    doNotOptimizeAway(timer);
+    benchTimerTick(TimerSchedType::TIMER_RBTREE, state);
 }
 
-BENCHMARK_RELATIVE(HHWheelTimerAdd, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
-    std::vector<int> ids;
+static void BM_HashWheelTimerTick(benchmark::State& state) {
 
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-    }
-
-    fillTimer(timer, ids, MaxN);
-
-    doNotOptimizeAway(timer);
+    benchTimerTick(TimerSchedType::TIMER_HASHED_WHEEL, state);
 }
 
+static void BM_HHWheelTimerTick(benchmark::State& state) {
 
-BENCHMARK_DRAW_LINE();
-
-
-BENCHMARK(PQTimerDel, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_PRIORITY_QUEUE);
-    std::vector<int> ids;
-
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(timer, ids, MaxN);
-    }
-
-    benchCancel(timer, ids);
-
-    doNotOptimizeAway(timer);
+    benchTimerTick(TimerSchedType::TIMER_HH_WHEEL, state);
 }
 
-BENCHMARK(QuadHeapTimerDel, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_QUAD_HEAP);
-    std::vector<int> ids;
-
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(timer, ids, MaxN);
-    }
-
-    benchCancel(timer, ids);
-
-    doNotOptimizeAway(timer);
-}
-
-BENCHMARK_RELATIVE(RBTreeTimerDel, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_RBTREE);
-    std::vector<int> ids;
-
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(timer, ids, MaxN);
-    }
-
-    benchCancel(timer, ids);
-
-    doNotOptimizeAway(timer);
-}
-
-BENCHMARK_RELATIVE(HashedWheelTimerDel, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_HASHED_WHEEL);
-    std::vector<int> ids;
-
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(timer, ids, MaxN);
-    }
-
-    benchCancel(timer, ids);
-
-    doNotOptimizeAway(timer);
-}
-
-BENCHMARK_RELATIVE(HHWheelTimerDel, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
-    std::vector<int> ids;
-
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(timer, ids, MaxN);
-    }
-
-    benchCancel(timer, ids);
-
-    doNotOptimizeAway(timer);
-}
-
-
-BENCHMARK_DRAW_LINE();
-
-
-BENCHMARK(PQTimerTick, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_PRIORITY_QUEUE);
-    std::vector<int> ids;
-
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(timer, ids, MaxN);
-    }
-
-    benchTick(timer, MaxN);
-
-    doNotOptimizeAway(timer);
-}
-
-BENCHMARK(QuadHeapTimerTick, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_QUAD_HEAP);
-    std::vector<int> ids;
-
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(timer, ids, MaxN);
-    }
-
-    benchTick(timer, MaxN);
-
-    doNotOptimizeAway(timer);
-}
-
-BENCHMARK_RELATIVE(RBTreeTimerTick, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_QUAD_HEAP);
-    std::vector<int> ids;
-
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(timer, ids, MaxN);
-    }
-
-    benchTick(timer, MaxN);
-
-    doNotOptimizeAway(timer);
-}
-
-BENCHMARK_RELATIVE(HashedWheelTimerTick, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_HASHED_WHEEL);
-    std::vector<int> ids;
-
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(timer, ids, MaxN);
-    }
-
-    benchTick(timer, MaxN);
-
-    doNotOptimizeAway(timer);
-}
-
-BENCHMARK_RELATIVE(HHWheelTimerTick, n)
-{
-    auto timer = CreateTimer(TimerSchedType::TIMER_HH_WHEEL);
-    std::vector<int> ids;
-
-    BENCHMARK_SUSPEND
-    {
-        ids.reserve(MaxN);
-        fillTimer(timer, ids, MaxN);
-    }
-
-    benchTick(timer, MaxN);
-
-    doNotOptimizeAway(timer);
-}
+BENCHMARK(BM_PQTimerTick);
+//BENCHMARK(BM_QuadHeapTimerTick);
+BENCHMARK(BM_RBTreeTimerTick);
+BENCHMARK(BM_HashWheelTimerTick);
+BENCHMARK(BM_HHWheelTimerTick);

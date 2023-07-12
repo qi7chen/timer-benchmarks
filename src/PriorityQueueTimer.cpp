@@ -84,10 +84,6 @@ int PriorityQueueTimer::Tick(int64_t now)
         if (now < node.deadline) {
             break; // no more due timer to trigger
         }
-        // make sure we don't process newly created timer in timeout event
-        if (node.id > max_id) {
-            break;
-        }
         auto action = std::move(node.action);
         delTimer(node);
         fired++;
