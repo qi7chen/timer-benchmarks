@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include "list_impl.h"
 
-
 /*
  *	These inlines deal with timer wrapping correctly. You are
  *	strongly encouraged to use them
@@ -49,9 +48,11 @@ struct tvec_base;
 
 struct timer_list {
     struct list_head entry;
+    int id = 0;
     int64_t expires = 0;
     tvec_base* base = NULL;
     void (*function)(timer_list*) = NULL;
+    void* data;
 };
 
 struct tvec_base {

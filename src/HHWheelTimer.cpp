@@ -6,18 +6,9 @@
 #include "Logging.h"
 #include <assert.h>
 
-
-struct TimerNode {
-    timer_list entry;
-    int id = 0;
-    TimeoutAction action;
-};
-
-
 inline int64_t current_clock() {
     return Clock::CurrentTimeMillis();
 }
-
 
 HHWheelTimer::HHWheelTimer()
 {
@@ -46,27 +37,36 @@ void HHWheelTimer::clear()
 int HHWheelTimer::Start(uint32_t duration, TimeoutAction action)
 {
     int id = nextId();
-    TimerNode* node = new TimerNode();
-    node->id = id;
-    node->entry.expires = Clock::CurrentTimeMillis() + duration;
-    node->entry.function = HHWheelTimer::timerExpireCallback;
-    node->entry.base = &base_;
+    timer_list* timer = new timer_list();
+    timer->id = id;
+    timer->base = &base_;
+    timer->data = this;
+    timer->expires = Clock::CurrentTimeMillis() + duration;
+    timer->function = HHWheelTimer::handleTimerExpired;
 
-    add_timer(&node->entry);
-    ref_[id] = node;
+    add_timer(timer);
+    ref_[id] = timer;
+    actions_[id] = action;
     return id;
 }
 
 bool HHWheelTimer::Cancel(int timer_id)
 {
     auto iter = ref_.find(timer_id);
-    if (iter != ref_.end()) {
-        TimerNode* node = iter->second;
-        del_timer(&node->entry);
-        delete node;
-        return true;
+    if (iter == ref_.end()) {
+        return false;
     }
-    return false;
+
+    timer_list* timer = iter->second;
+    del_timer(timer);
+    ref_.erase(timer_id);
+    actions_.erase(timer_id);
+
+    timer->base = NULL;
+    timer->function = NULL;
+    delete timer;
+
+    return true;
 }
 
 int HHWheelTimer::Tick(int64_t ticks)
@@ -74,12 +74,27 @@ int HHWheelTimer::Tick(int64_t ticks)
     return run_timers(&base_, ticks);
 }
 
-void HHWheelTimer::timerExpireCallback(timer_list* timer)
+TimeoutAction HHWheelTimer::findAndDelAction(int id)
+{
+    auto iter = actions_.find(id);
+    if (iter != actions_.end())
+    {
+        TimeoutAction action = std::move(iter->second);
+        actions_.erase(iter);
+        return std::move(action);
+    }
+    return nullptr;
+}
+
+void HHWheelTimer::handleTimerExpired(timer_list* timer)
 {
     assert(timer);
-    TimerNode* node = container_of(timer, TimerNode, entry);
-    HHWheelTimer* wheel = container_of(timer->base, HHWheelTimer, base_);
-    node->action();
-    wheel->Cancel(node->id);
+    auto wheel = reinterpret_cast<HHWheelTimer*>(timer->data);
+    TimeoutAction action = wheel->findAndDelAction(timer->id);
+    wheel->Cancel(timer->id);
+
+    if (action) {
+        action();
+    }
 }
 

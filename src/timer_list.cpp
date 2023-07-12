@@ -181,13 +181,7 @@ static int cascade(struct tvec_base* base, struct tvec* tv, int index)
     return index;
 }
 
-inline void call_timer_fn(struct timer_list* timer, void (*fn)(timer_list*))
-{
-    assert(fn);
-    //trace_timer_expire_entry(timer);
-    fn(timer);
-    //trace_timer_expire_exit(timer);
-}
+
 
 #define INDEX(N) ((base->timer_clk >> (TVR_BITS + (N) * TVN_BITS)) & TVN_MASK)
 
@@ -214,7 +208,10 @@ int run_timers(struct tvec_base* base, int64_t clock)
             auto fn = timer->function;
             base->running_timer = timer;
             detach_expired_timer(timer, base);
-            call_timer_fn(timer, fn);
+
+            assert(fn);
+            fn(timer);
+
             n++;
         }
     }

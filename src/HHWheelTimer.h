@@ -38,12 +38,15 @@ public:
         return (int)ref_.size();
     }
 
+    TimeoutAction findAndDelAction(int id);
+
 private:
     void clear();
-    static void timerExpireCallback(timer_list* timer);
+    static void handleTimerExpired(timer_list*);
 
 private:
     int64_t started_at_ = 0;
     tvec_base base_;
-    std::unordered_map<int, TimerNode*> ref_;
+    std::unordered_map<int, timer_list*> ref_;
+    std::unordered_map<int, TimeoutAction> actions_;
 };
