@@ -4,7 +4,7 @@
 #pragma once
 
 #include "TimerBase.h"
-#include "RBTree.h"
+#include <map>
 #include <unordered_map>
 
 // timer scheduler implemented by red-black tree.
@@ -48,17 +48,14 @@ public:
 
     int Size() const override 
     { 
-        return tree_.size();
+        return (int)timers_.size();
     }
 
 private:
     void clear();
 
-    // a hashmap timer reference, to make O(1) lookup
-    std::unordered_map<int, NodeKey> ref_;
-
-    // same rbtree algorithm implementation for all platforms.
-    // you may replace with std::multimap<> instead
-    RBTree<NodeKey, TimeoutAction> tree_;
+    // rbtree map implementation
+    std::multimap<NodeKey, TimeoutAction> timers_;
+    std::unordered_map<int , NodeKey> ref_;
 };
 

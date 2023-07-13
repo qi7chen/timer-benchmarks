@@ -17,7 +17,7 @@ RBTreeTimer::~RBTreeTimer()
 
 void RBTreeTimer::clear()
 {
-    tree_.clear();
+    timers_.clear();
     ref_.clear();
 }
 
@@ -27,7 +27,7 @@ int RBTreeTimer::Start(uint32_t duration, TimeoutAction action)
     NodeKey key;
     key.id = id;
     key.deadline = Clock::CurrentTimeMillis() + (int64_t)duration;
-    tree_.put(key, action);
+    timers_.insert(std::make_pair(key, action));
     ref_[id] = key;
     return id;
 }
@@ -36,8 +36,9 @@ bool RBTreeTimer::Cancel(int timer_id)
 {
     auto iter = ref_.find(timer_id);
     if (iter != ref_.end()) {
-        tree_.remove(iter->second);
+        NodeKey key = iter->second;
         ref_.erase(iter);
+        timers_.erase(key);
         return true;
     }
     return false;
@@ -45,34 +46,35 @@ bool RBTreeTimer::Cancel(int timer_id)
 
 int RBTreeTimer::Tick(int64_t now)
 {
-    if (tree_.size() == 0) {
+    if (timers_.size() == 0) {
         return 0;
     }
-    auto entry = tree_.getFirstEntry();
-    if (entry == nullptr) {
-        return 0;
-    }
+    auto iter = timers_.begin();
     int fired = 0;
     int max_id = next_id_;
-    while (entry != nullptr)
+    while (timers_.size() > 0 && iter != timers_.end())
     {
-        if (now < entry->key.deadline) {
+        const NodeKey& key = iter->first;
+        if (now < key.deadline) {
             break; // no more due timer to trigger
         }
         // make sure we don't process newly created timer in timeout event
-        if (entry->key.id > max_id) {
+        if (key.id > max_id) {
             break;
         }
 
-        TimeoutAction action = std::move(entry->value);
-        ref_.erase(entry->key.id);
-        tree_.remove(entry->key);
+        TimeoutAction action = std::move(iter->second);
+        ref_.erase(key.id);
+        timers_.erase(key);
+
         if (action) {
             action(); // timeout action
+            fired++;
         }
 
-        entry = tree_.getFirstEntry();
-        fired++;
+        if (timers_.size() > 0) {
+            iter = timers_.begin();
+        }
     }
     return fired;
 }
