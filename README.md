@@ -29,7 +29,7 @@ and [Hierarchical timing wheel](https://lwn.net/Articles/646950/) to implement d
 FIFO means whether same deadline timers expire in FIFO order.
 
 algo                     | Start()    | Cancel() | Tick()   |  FIFO  | implemention file
---------------------------|-----------|---------|----------|--------------------------
+--------------------------|-----------|---------|----------|---------|-----------------
 binary heap               | O(log N) | O(log N) | O(1)     |   no   | [PriorityQueueTimer](src/PriorityQueueTimer.h)
 4-ary heap                | O(log N) | O(log N) | O(1)     |   no   | [QuatHeapTimer](src/QuatHeapTimer.h)
 redblack tree             | O(log N) | O(log N) | O(log N) |   no   | [RBTreeTimer](src/RBTreeTimer.h)
@@ -67,13 +67,11 @@ BM_QuadHeapTimerAdd     |      429 ns     |    427 ns  |   1866667
 BM_RBTreeTimerAdd       |     1231 ns     |   1228 ns  |   1120000
 BM_HashWheelTimerAdd    |      430 ns     |    436 ns  |   1792000
 BM_HHWheelTimerAdd      |      669 ns     |    672 ns  |   1000000
-                        |                 |            |
 BM_PQTimerCancel        |      668 ns     |    656 ns  |   1000000
 BM_QuadHeapTimerCancel  |      351 ns     |    349 ns  |   2240000
 BM_RBTreeTimerCancel    |     1685 ns     |   1692 ns  |    896000
 BM_HashWheelTimerCancel |      632 ns     |    641 ns  |   1000000
 BM_HHWheelTimerCancel   |      942 ns     |    953 ns  |   1000000
-                        |                 |            |
 BM_PQTimerTick          |     29.8 ns     |   29.8 ns  |  23578947
 BM_QuadHeapTimerTick    |     30.3 ns     |   30.5 ns  |  23578947
 BM_RBTreeTimerTick      |     30.2 ns     |   29.8 ns  |  23578947
