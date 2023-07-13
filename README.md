@@ -61,7 +61,7 @@ Win10 x64 6-core 3.93MHz CPU
 
 
 Benchmark               |        Time     |       CPU  | Iterations
-------------------------|-----------------|---------------------------
+------------------------|-----------------|------------|---------------
 BM_PQTimerAdd           |      441 ns     |    433 ns  |   1947826
 BM_QuadHeapTimerAdd     |      429 ns     |    427 ns  |   1866667
 BM_RBTreeTimerAdd       |     1231 ns     |   1228 ns  |   1120000
