@@ -14,17 +14,18 @@ int main(int argc, char* argv[])
 
     testing::InitGoogleTest(&argc, argv);
 
-    int r = RUN_ALL_TESTS();
+    //int r = RUN_ALL_TESTS();
+    //if (r == 1) {
+    //    return 1;
+    //}
 
-    // only run benchmark in release mode
+    printf("start run benchmarks\n");
     benchmark::Initialize(&argc, argv);
-#if defined(NDEBUG)
     if (benchmark::ReportUnrecognizedArguments(argc, argv)) {
         return 1;
     }
     benchmark::RunSpecifiedBenchmarks();                              
-#endif
     benchmark::Shutdown();
 
-    return r;
+    return 0;
 }

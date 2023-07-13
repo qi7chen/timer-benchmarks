@@ -18,14 +18,15 @@ RBTreeTimer::~RBTreeTimer()
 void RBTreeTimer::clear()
 {
     tree_.clear();
+    ref_.clear();
 }
 
-int RBTreeTimer::Start(uint32_t ms, TimeoutAction action)
+int RBTreeTimer::Start(uint32_t duration, TimeoutAction action)
 {
     int id = nextId();
     NodeKey key;
     key.id = id;
-    key.deadline = Clock::CurrentTimeMillis() + ms;
+    key.deadline = Clock::CurrentTimeMillis() + (int64_t)duration;
     tree_.put(key, action);
     ref_[id] = key;
     return id;
@@ -34,12 +35,12 @@ int RBTreeTimer::Start(uint32_t ms, TimeoutAction action)
 bool RBTreeTimer::Cancel(int timer_id)
 {
     auto iter = ref_.find(timer_id);
-    if (iter == ref_.end()) {
-        return false;
+    if (iter != ref_.end()) {
+        tree_.remove(iter->second);
+        ref_.erase(iter);
+        return true;
     }
-    tree_.remove(iter->second);
-    ref_.erase(timer_id);
-    return true;
+    return false;
 }
 
 int RBTreeTimer::Tick(int64_t now)
@@ -51,9 +52,8 @@ int RBTreeTimer::Tick(int64_t now)
     if (entry == nullptr) {
         return 0;
     }
-    
+    int fired = 0;
     int max_id = next_id_;
-    std::vector<NodeKey> expired; // expired keys to delete
     while (entry != nullptr)
     {
         if (now < entry->key.deadline) {
@@ -61,22 +61,18 @@ int RBTreeTimer::Tick(int64_t now)
         }
         // make sure we don't process newly created timer in timeout event
         if (entry->key.id > max_id) {
-            continue;
+            break;
         }
-        expired.push_back(entry->key);
-        entry = entry->next();
-    }
-    int fired = (int)expired.size();
-    for (int i = 0; i < fired; i++) {
-        auto entry = tree_.getEntry(expired[i]);
-        if (entry != nullptr) {
-            TimeoutAction action = std::move(entry->value);
-            ref_.erase(entry->key.id);
-            tree_.remove(entry->key);
-            if (action) {
-                action(); // timeout action
-            }
+
+        TimeoutAction action = std::move(entry->value);
+        ref_.erase(entry->key.id);
+        tree_.remove(entry->key);
+        if (action) {
+            action(); // timeout action
         }
+
+        entry = tree_.getFirstEntry();
+        fired++;
     }
     return fired;
 }

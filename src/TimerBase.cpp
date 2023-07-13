@@ -3,7 +3,7 @@
 
 #include "TimerBase.h"
 #include "PriorityQueueTimer.h"
-#include "QuatHeapTimer.h"
+#include "QuadHeapTimer.h"
 #include "RBTreeTimer.h"
 #include "HashedWheelTimer.h"
 #include "HHWheelTimer.h"
@@ -29,7 +29,7 @@ std::shared_ptr<TimerBase> CreateTimer(TimerSchedType sched_type)
     case TimerSchedType::TIMER_PRIORITY_QUEUE:
         return std::shared_ptr<TimerBase>(new PriorityQueueTimer());
     case TimerSchedType::TIMER_QUAD_HEAP:
-        return std::shared_ptr<TimerBase>(new QuatHeapTimer());
+        return std::shared_ptr<TimerBase>(new QuadHeapTimer());
     case TimerSchedType::TIMER_RBTREE:
         return std::shared_ptr<TimerBase>(new RBTreeTimer());
     case TimerSchedType::TIMER_HASHED_WHEEL:

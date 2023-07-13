@@ -69,30 +69,40 @@ public:
     Entry<K, V>* getLastEntry() const;
     void getEntries(std::vector<Entry<K, V>*>& out) const;
 
-    void put(const K& key, const V& val);
-    bool putIfAbsent(const K& key, const V& val);
+    void addEntry(const K& key, const V& val, Entry<K, V>* parent, bool add_left);
+    void addEntryToEmptyMap(const K& key, const V& val);
+    bool putEntry(const K& key, const V& val, bool replace);
 
+    void put(const K& key, const V& val) {
+        putEntry(key, val, true);
+    }
+    bool putIfAbsent(const K& key, const V& val) {
+        putEntry(key, val, false);
+    }
+
+    void deleteEntry(Entry<K, V>* p);
     bool remove(const K& key)
     {
         auto p = getEntry(key);
         if (p != nullptr) {
-            removeEntry(p);
+            deleteEntry(p);
             freeEntry(p);
             return true;
         }
         return false;
     }
 
-    void removeEntry(Entry<K, V>* p);
     void clear();
 
 private:
-    Entry<K, V>* allocEntry(const K& key, const V& value, Entry<K, V>* parent);
-    Entry<K, V>* freeEntry(Entry<K, V>* p);
+    Entry<K, V>* allocEntry(const K& key, const V& value, Entry<K, V>* parent) {
+        return new Entry<K, V>(key, value, parent);
+    }
 
-    void addEntry(const K& key, const V& val, Entry<K, V>* parent, bool add_left);
-    void addEntryToEmptyMap(const K& key, const V& val);
-    bool putEntry(const K& key, const V& val, bool replace);
+    Entry<K, V>* freeEntry(Entry<K, V>* p) {
+        delete p;
+        return nullptr;
+    }
 
     void rotateLeft(Entry<K,V>* p);
     void rotateRight(Entry<K, V>* p);

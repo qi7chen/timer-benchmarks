@@ -38,8 +38,8 @@ public:
         return TimerSchedType::TIMER_RBTREE;
     }
 
-    // start a timer after `ms` milliseconds
-    int Start(uint32_t ms, TimeoutAction action) override;
+    // start a timer after `duration` milliseconds
+    int Start(uint32_t duration, TimeoutAction action) override;
 
     // cancel a timer
     bool Cancel(int timer_id) override;
@@ -57,8 +57,8 @@ private:
     // a hashmap timer reference, to make O(1) lookup
     std::unordered_map<int, NodeKey> ref_;
 
-    // do our own rbtree algorithm to smoothing differences between different STL implementations,
-    // you may replace this with std::multimap<> instead
+    // same rbtree algorithm implementation for all platforms.
+    // you may replace with std::multimap<> instead
     RBTree<NodeKey, TimeoutAction> tree_;
 };
 

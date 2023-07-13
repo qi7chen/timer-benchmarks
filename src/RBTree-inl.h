@@ -228,18 +228,6 @@ bool RBTree<K, V>::putEntry(const K& key, const V& val, bool replace)
 }
 
 template <typename K, typename V>
-void RBTree<K, V>::put(const K& key, const V& val)
-{
-    putEntry(key, val, true);
-}
-
-template <typename K, typename V>
-bool RBTree<K, V>::putIfAbsent(const K& key, const V& val)
-{
-    return putEntry(key, val, false);
-}
-
-template <typename K, typename V>
 void RBTree<K, V>::clear()
 {
     std::vector<Entry<K, V>*> entries;
@@ -254,10 +242,10 @@ void RBTree<K, V>::clear()
 }
 
 template <typename K, typename V>
-void RBTree<K, V>::removeEntry(Entry<K, V>* p)
+void RBTree<K, V>::deleteEntry(Entry<K, V>* p)
 {
-    size_--;
     version_++;
+    size_--;
 
     // If strictly internal, copy successor's element to p and then make p
    // point to successor.
@@ -269,11 +257,7 @@ void RBTree<K, V>::removeEntry(Entry<K, V>* p)
     }  // p has 2 children
 
     // Start fixup at replacement node, if it exists.
-    auto replacement = p->left;
-    if (p->left == nullptr) {
-        replacement = p->right;
-    }
-
+    auto replacement = (p->left != nullptr ? p->left : p->right);
     if (replacement != nullptr) {
         // Link replacement to parent
         replacement->parent = p->parent;
@@ -316,19 +300,6 @@ void RBTree<K, V>::removeEntry(Entry<K, V>* p)
     }
 }
 
-template <typename K, typename V>
-Entry<K, V>* RBTree<K, V>::allocEntry(const K& key, const V& value, Entry<K, V>* parent)
-{
-    return new Entry<K, V>(key, value, parent);
-}
-
-template <typename K, typename V>
-Entry<K, V>* RBTree<K, V>::freeEntry(Entry<K, V>* p)
-{
-    delete p;
-    return nullptr;
-}
-
 
 // Balancing operations.
 //
@@ -342,51 +313,49 @@ Entry<K, V>* RBTree<K, V>::freeEntry(Entry<K, V>* p)
 template <typename K, typename V>
 void RBTree<K, V>::rotateLeft(Entry<K, V>* p)
 {
-    if (p == nullptr) {
-        return;
+    if (p != nullptr) {
+        auto r = p->right;
+        p->right = r->left;
+        if (r->left != nullptr) {
+            r->left->parent = p;
+        }
+        r->parent = p->parent;
+        if (p->parent == nullptr) {
+            root_ = r;
+        }
+        else if (p->parent->left == p) {
+            p->parent->left = r;
+        }
+        else {
+            p->parent->right = r;
+        }
+        r->left = p;
+        p->parent = r;
     }
-    auto r = p->right;
-    p->right = r->left;
-    if (r->left != nullptr) {
-        r->left->parent = p;
-    }
-    r->parent = p->parent;
-    if (p->parent == nullptr) {
-        root_ = r;
-    }
-    else if (p->parent->left == p) {
-        p->parent->left = r;
-    }
-    else {
-        p->parent->right = r;
-    }
-    r->left = p;
-    p->parent = r;
 }
 
 template <typename K, typename V>
 void RBTree<K, V>::rotateRight(Entry<K, V>* p)
 {
-    if (p == nullptr) {
-        return;
+    if (p != nullptr) {
+        auto l = p->left;
+        p->left = l->right;
+        if (l->right != nullptr) {
+            l->right->parent = p;
+        }
+        l->parent = p->parent;
+        if (p->parent == nullptr) {
+            root_ = l;
+        }
+        else if (p->parent->right == p) {
+            p->parent->right = l;
+        }
+        else {
+            p->parent->left = l;
+        }
+        l->right = p;
+        p->parent = l;
     }
-    auto l = p->left;
-    p->left = l->right;
-    if (l->right != nullptr) {
-        l->right->parent = p;
-    }
-    l->parent = p->parent;
-    if (p->parent == nullptr) {
-        root_ = l;
-    }
-    else if (p->parent->right == p) {
-        p->parent->right = l;
-    }
-    else {
-        p->parent->left = l;
-    }
-    l->right = p;
-    p->parent = l;
 }
 
 template <typename K, typename V>

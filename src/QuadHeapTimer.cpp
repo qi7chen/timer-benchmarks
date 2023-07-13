@@ -159,8 +159,8 @@ bool QuadHeapTimer::Cancel(int timer_id)
 {
     auto iter = ref_.find(timer_id);
     if (iter != ref_.end()) {
-        ref_.erase(iter);
         iter->second->deleted = 1;
+        ref_.erase(iter);
         return true;
     }
     return false;
@@ -182,15 +182,17 @@ int QuadHeapTimer::Tick(int64_t now)
             break; // process newly added timer at next tick
         }
         if (node->deleted) {
-            ref_.erase(node->id);
             deltimer0(timers_);
+            ref_.erase(node->id);
+            delete node;
             continue;
         }
 
         auto action = std::move(node->action);
 
-        ref_.erase(node->id);
         deltimer0(timers_);
+        ref_.erase(node->id);
+        delete node;
 
         fired++;
 

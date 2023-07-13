@@ -125,8 +125,10 @@ bool PriorityQueueTimer::Cancel(int timer_id)
 {
     auto iter = ref_.find(timer_id);
     if (iter != ref_.end()) {
+        TimerNode* node = iter->second;
+        removeTimer(timers_, node->index);
         ref_.erase(iter);
-        removeTimer(timers_, iter->second->index);
+        delete node;
         return true;
     }
     return false;
@@ -149,8 +151,9 @@ int PriorityQueueTimer::Tick(int64_t now)
         }
         auto action = std::move(node->action);
 
-        ref_.erase(node->id);
         removeTimer(timers_, 0);
+        ref_.erase(node->id);
+        delete node;
 
         fired++;
 
