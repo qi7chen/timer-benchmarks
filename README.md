@@ -28,13 +28,15 @@ and [Hierarchical timing wheel](https://lwn.net/Articles/646950/) to implement d
 
 FIFO means whether same deadline timers expire in FIFO order.
 
-algo                     | Start()    | Cancel() | Tick()   |  FIFO  | implemention file
---------------------------|-----------|---------|----------|---------|-----------------
-binary heap               | O(log N) | O(log N) | O(1)     |   no   | [PriorityQueueTimer](src/PriorityQueueTimer.h)
-4-ary heap                | O(log N) | O(log N) | O(1)     |   no   | [QuatHeapTimer](src/QuatHeapTimer.h)
-redblack tree             | O(log N) | O(log N) | O(log N) |   no   | [RBTreeTimer](src/RBTreeTimer.h)
-hashed timing wheel       | O(1)     | O(1)     | O(1)     |   yes  | [HashedWheelTimer](src/HashedWheelTimer.h)
-hierarchical timing wheel | O(1)     | O(1)     | O(1)     |   yes  | [HHWheelTimer](src/HHWheelTimer.h)
+FIFO的意思是相同到期时间的定时器是否按FIFO的顺序到期
+
+algo                      |          | Start()  | Cancel() | Tick()   |  FIFO  | implemention file
+--------------------------|----------|----------|----------|----------|--------|-----------------------
+binary heap               | 最小堆   | O(log N) | O(log N) | O(1)     |   no   | [PriorityQueueTimer](src/PriorityQueueTimer.h)
+4-ary heap                | 四叉堆   | O(log N) | O(log N) | O(1)     |   no   | [QuatHeapTimer](src/QuatHeapTimer.h)
+redblack tree             | 红黑树   | O(log N) | O(log N) | O(log N) |   no   | [RBTreeTimer](src/RBTreeTimer.h)
+hashed timing wheel       | 时间轮   | O(1)     | O(1)     | O(1)     |   yes  | [HashedWheelTimer](src/HashedWheelTimer.h)
+hierarchical timing wheel | 多级时间轮 | O(1)   | O(1)     | O(1)     |   yes  | [HHWheelTimer](src/HHWheelTimer.h)
 
 
 ## How To Build
@@ -43,9 +45,9 @@ hierarchical timing wheel | O(1)     | O(1)     | O(1)     |   yes  | [HHWheelTi
 
 Obtain [CMake](https://cmake.org) first.
 
-* `sudo apt install cmake` on ubuntu or debian
-* `sudo yum install cmake` on redhat or centos
-* `choco install cmake` on windows use [choco](https://chocolatey.org/)
+* `sudo apt install cmake` on Ubuntu or Debian
+* `sudo yum install cmake` on Redhat or CentOS
+* `choco install cmake` on Windows use [choco](https://chocolatey.org/)
 
 run shell command
 
@@ -80,8 +82,10 @@ BM_HHWheelTimerTick     |     30.5 ns     |   30.7 ns  |  22400000
 
 ## Conclusion
 
-* rbtree timer Add/Cancel has not so good performance compare to other implementations.
-* binary min heap is a good choice, easy to implement and have a good performance, but without FIFO expiration order .
+* rbtree timer Add/Cancel has not so good performance compare to other implementations;
+* 红黑树的插入和删除相比其它实现，表现都弱了一些；
+* binary min heap is a good choice, easy to implement and have a good performance, but without FIFO expiration order(heap sort is unstable);
+* 最小堆是一个不错的选择，代码实现简单性能也不俗，但不支持相同超时的定时器按FIFO顺序触发;
 
 
 ## Reference
