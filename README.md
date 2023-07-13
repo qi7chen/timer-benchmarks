@@ -26,14 +26,15 @@ and [Hierarchical timing wheel](https://lwn.net/Articles/646950/) to implement d
 
 ## Big(O) complexity of algorithm
 
+FIFO means whether same deadline timers expire in FIFO order.
 
-algo                    | Start()    | Cancel() | Tick()   | implemention file
+algo                     | Start()    | Cancel() | Tick()   |  FIFO  | implemention file
 --------------------------|-----------|---------|----------|--------------------------
-binary heap               | O(log N) | O(log N) | O(1)     | [PriorityQueueTimer](src/PriorityQueueTimer.h)
-4-ary heap                | O(log N) | O(log N) | O(1)     | [QuatHeapTimer](src/QuatHeapTimer.h)
-redblack tree             | O(log N) | O(log N) | O(log N) | [RBTreeTimer](src/RBTreeTimer.h)
-hashed timing wheel       | O(1)     | O(1)     | O(1)     | [HashedWheelTimer](src/HashedWheelTimer.h)
-hierarchical timing wheel | O(1)     | O(1)     | O(1)     | [HHWheelTimer](src/HHWheelTimer.h)
+binary heap               | O(log N) | O(log N) | O(1)     |   no   | [PriorityQueueTimer](src/PriorityQueueTimer.h)
+4-ary heap                | O(log N) | O(log N) | O(1)     |   no   | [QuatHeapTimer](src/QuatHeapTimer.h)
+redblack tree             | O(log N) | O(log N) | O(log N) |   no   | [RBTreeTimer](src/RBTreeTimer.h)
+hashed timing wheel       | O(1)     | O(1)     | O(1)     |   yes  | [HashedWheelTimer](src/HashedWheelTimer.h)
+hierarchical timing wheel | O(1)     | O(1)     | O(1)     |   yes  | [HHWheelTimer](src/HHWheelTimer.h)
 
 
 ## How To Build
@@ -56,28 +57,33 @@ run shell command
 
 ## Benchmark result
 
-AMD x64 6-core 3.93MHz CPU
+Win10 x64 6-core 3.93MHz CPU
 
-Benchmark                 |       Time      | CPU     |  Iterations
---------------------------|-----------------|---------|--------------
-BM_PQTimerAdd             |     423 ns      | 410 ns  |    1600000
-BM_QuadHeapTimerAdd       |     399 ns      | 401 ns  |    1947826
-BM_RBTreeTimerAdd         |    1181 ns      | 1186 ns |    1120000
-BM_HashWheelTimerAdd      |     376 ns      | 377 ns  |    1947826
-BM_HHWheelTimerAdd        |     430 ns      | 436 ns  |    1792000
-                          |                 |         |
-BM_PQTimerCancel          |     503 ns      | 500 ns  |    1000000
-BM_HashWheelTimerCancel   |     443 ns      | 443 ns  |    1659259
-BM_HHWheelTimerCancel     |     598 ns      | 578 ns  |    1000000
-                          |                 |         |
-BM_PQTimerTick            |     278 ns      | 276 ns  |    2488889
-BM_QuadHeapTimerTick      |     294 ns      | 289 ns  |    2488889
-BM_RBTreeTimerTick        |     324 ns      | 318 ns  |    2357895
-BM_HashWheelTimerTick     |     337 ns      | 335 ns  |    2240000
-BM_HHWheelTimerTick       |     293 ns      | 293 ns  |    2133333
+------------------------------------------------------------------
+Benchmark               |        Time     |       CPU  | Iterations
+------------------------|-----------------|-----------------------
+BM_PQTimerAdd           |      441 ns     |    433 ns  |   1947826
+BM_QuadHeapTimerAdd     |      429 ns     |    427 ns  |   1866667
+BM_RBTreeTimerAdd       |     1231 ns     |   1228 ns  |   1120000
+BM_HashWheelTimerAdd    |      430 ns     |    436 ns  |   1792000
+BM_HHWheelTimerAdd      |      669 ns     |    672 ns  |   1000000
+                        |                 |            |
+BM_PQTimerCancel        |      668 ns     |    656 ns  |   1000000
+BM_QuadHeapTimerCancel  |      351 ns     |    349 ns  |   2240000
+BM_RBTreeTimerCancel    |     1685 ns     |   1692 ns  |    896000
+BM_HashWheelTimerCancel |      632 ns     |    641 ns  |   1000000
+BM_HHWheelTimerCancel   |      942 ns     |    953 ns  |   1000000
+                        |                 |            |
+BM_PQTimerTick          |     29.8 ns     |   29.8 ns  |  23578947
+BM_QuadHeapTimerTick    |     30.3 ns     |   30.5 ns  |  23578947
+BM_RBTreeTimerTick      |     30.2 ns     |   29.8 ns  |  23578947
+BM_HashWheelTimerTick   |     31.2 ns     |   30.8 ns  |  21333333
+BM_HHWheelTimerTick     |     30.5 ns     |   30.7 ns  |  22400000
 
 ## Conclusion
-TODO:
+
+* rbtree timer Add/Cancel has not so good performance compare to other implementations.
+* binary min heap is a good choice, easy to implement and have a good performance, but without FIFO expiration order .
 
 
 ## Reference
