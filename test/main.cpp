@@ -14,10 +14,10 @@ int main(int argc, char* argv[])
 
     testing::InitGoogleTest(&argc, argv);
 
-    //int r = RUN_ALL_TESTS();
-    //if (r == 1) {
-    //    return 1;
-    //}
+    int r = RUN_ALL_TESTS();
+    if (r == 1) {
+        return 1;
+    }
 
     printf("start run benchmarks\n");
     benchmark::Initialize(&argc, argv);
