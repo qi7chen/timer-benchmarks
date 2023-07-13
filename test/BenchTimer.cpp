@@ -73,6 +73,7 @@ BENCHMARK(BM_RBTreeTimerAdd);
 BENCHMARK(BM_HashWheelTimerAdd);
 BENCHMARK(BM_HHWheelTimerAdd);
 
+
 static std::shared_ptr<TimerBase> createAndFillTimer(TimerSchedType timerType, int N, vector<int>& out) {
     uint32_t seed = lcg_seed(12345);
     auto timer = CreateTimer(timerType);
@@ -130,11 +131,13 @@ static void BM_HHWheelTimerCancel(benchmark::State& state) {
     benchTimerCancel(TimerSchedType::TIMER_HH_WHEEL, state);
 }
 
+
 BENCHMARK(BM_PQTimerCancel);
-//BENCHMARK(BM_QuadHeapTimerCancel); // lazy deletion here not fair
-//BENCHMARK(BM_RBTreeTimerCancel);
+BENCHMARK(BM_QuadHeapTimerCancel); // lazy deletion here not fair
+BENCHMARK(BM_RBTreeTimerCancel);
 BENCHMARK(BM_HashWheelTimerCancel);
 BENCHMARK(BM_HHWheelTimerCancel);
+
 
 static void benchTimerTick(TimerSchedType timerType, benchmark::State& state)
 {
@@ -173,8 +176,10 @@ static void BM_HHWheelTimerTick(benchmark::State& state) {
     benchTimerTick(TimerSchedType::TIMER_HH_WHEEL, state);
 }
 
+
 BENCHMARK(BM_PQTimerTick);
 BENCHMARK(BM_QuadHeapTimerTick);
 BENCHMARK(BM_RBTreeTimerTick);
 BENCHMARK(BM_HashWheelTimerTick);
 BENCHMARK(BM_HHWheelTimerTick);
+

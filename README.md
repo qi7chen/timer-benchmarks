@@ -20,8 +20,8 @@ int Tick(now)
 ```
 
 use [min-heap](https://en.wikipedia.org/wiki/Heap_(data_structure)), quaternary heap( [4-ary heap](https://en.wikipedia.org/wiki/D-ary_heap) ),
-balanced binary search tree( [red-black tree](https://en.wikipedia.org/wiki/Red-black_tree) ), hashed timing wheel
-and Hierarchical timing wheel to implement different time scheduler.
+balanced binary search tree( [red-black tree](https://en.wikipedia.org/wiki/Red-black_tree) ), [hashed timing wheel](https://netty.io/4.0/api/io/netty/util/HashedWheelTimer.html)
+and [Hierarchical timing wheel](https://lwn.net/Articles/646950/) to implement different time scheduler.
 
 
 ## Big(O) complexity of algorithm
@@ -56,7 +56,25 @@ run shell command
 
 ## Benchmark result
 
-TODO:
+AMD x64 6-core 3.93MHz CPU
+
+Benchmark                 |       Time      | CPU     |  Iterations
+--------------------------|-----------------|---------|--------------
+BM_PQTimerAdd             |     423 ns      | 410 ns  |    1600000
+BM_QuadHeapTimerAdd       |     399 ns      | 401 ns  |    1947826
+BM_RBTreeTimerAdd         |    1181 ns      | 1186 ns |    1120000
+BM_HashWheelTimerAdd      |     376 ns      | 377 ns  |    1947826
+BM_HHWheelTimerAdd        |     430 ns      | 436 ns  |    1792000
+                          |                 |         |
+BM_PQTimerCancel          |     503 ns      | 500 ns  |    1000000
+BM_HashWheelTimerCancel   |     443 ns      | 443 ns  |    1659259
+BM_HHWheelTimerCancel     |     598 ns      | 578 ns  |    1000000
+                          |                 |         |
+BM_PQTimerTick            |     278 ns      | 276 ns  |    2488889
+BM_QuadHeapTimerTick      |     294 ns      | 289 ns  |    2488889
+BM_RBTreeTimerTick        |     324 ns      | 318 ns  |    2357895
+BM_HashWheelTimerTick     |     337 ns      | 335 ns  |    2240000
+BM_HHWheelTimerTick       |     293 ns      | 293 ns  |    2133333
 
 ## Conclusion
 TODO:
