@@ -45,10 +45,10 @@ void HashedWheelTimer::purge()
 }
 
 
-int HashedWheelTimer::Start(uint32_t ms, TimeoutAction action)
+int HashedWheelTimer::Start(uint32_t duration, TimeoutAction action)
 {
     int id = nextId();
-    int64_t deadline = Clock::CurrentTimeMillis() + ms;
+    int64_t deadline = Clock::CurrentTimeMillis() + (int64_t)duration;
     HashedWheelTimeout* timeout = allocTimeout(id, deadline, action);
     int calculated = (int)(timeout->deadline - started_at_) / TICK_DURATION;
     timeout->remaining_rounds = (calculated - ticks_) / WHEEL_SIZE;

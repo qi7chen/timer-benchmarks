@@ -29,8 +29,8 @@ public:
         return TimerSchedType::TIMER_HASHED_WHEEL;
     }
 
-    // start a timer after `ms` milliseconds
-    int Start(uint32_t ms, TimeoutAction action) override;
+    // start a timer after `duration` milliseconds
+    int Start(uint32_t duration, TimeoutAction action) override;
 
     // cancel a timer
     bool Cancel(int timer_id) override;

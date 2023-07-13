@@ -41,7 +41,7 @@ int HHWheelTimer::Start(uint32_t duration, TimeoutAction action)
     timer->id = id;
     timer->base = &base_;
     timer->data = this;
-    timer->expires = Clock::CurrentTimeMillis() + duration;
+    timer->expires = Clock::CurrentTimeMillis() + (int64_t)duration;
     timer->function = HHWheelTimer::handleTimerExpired;
 
     add_timer(timer);

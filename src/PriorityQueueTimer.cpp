@@ -4,11 +4,28 @@
 #include "PriorityQueueTimer.h"
 #include "Clock.h"
 
+using namespace std;
+
+struct TimerNode
+{
+    int index = -1;  // array index at heap
+    int id = 0;      // unique timer id
+    int64_t deadline = 0;   // expired time in ms
+    TimeoutAction action = nullptr;
+
+    bool lessThan(const TimerNode* b) const
+    {
+        if (deadline == b->deadline) {
+            return id > b->id;
+        }
+        return deadline < b->deadline;
+    }
+};
+
 
 PriorityQueueTimer::PriorityQueueTimer()
 {
-    // reserve a little space
-    heap_.reserve(16);
+    timers_.reserve(64); // reserve a little space
 }
 
 
@@ -19,84 +36,19 @@ PriorityQueueTimer::~PriorityQueueTimer()
 
 void PriorityQueueTimer::clear()
 {
-    heap_.clear();
+    for (auto& kv : ref_)
+    {
+        delete(kv.second);
+    }
+    ref_.clear();
+    timers_.clear();
 }
 
-int PriorityQueueTimer::Start(uint32_t ms, TimeoutAction action)
-{
-    int id = nextId();
-    int64_t expire = Clock::CurrentTimeMillis() + ms;
-    int i = (int)heap_.size();
+// Heap maintenance algorithms.
+// this to ensure run same min-heap algorithm on different platform,
+// you may replace with std::priority_queue instead
 
-    TimerNode node;
-    node.id = id;
-    node.deadline = expire;
-    node.action = action;
-    node.index = i;
-
-    heap_.push_back(node);
-    siftUp(i);
-
-    ref_[id] = node;
-    return node.id;
-}
-
-bool PriorityQueueTimer::Cancel(int timer_id)
-{
-    auto iter = ref_.find(timer_id);
-    if (iter == ref_.end()) {
-        return false;
-    }
-    delTimer(iter->second);
-    return true;
-}
-
-void PriorityQueueTimer::delTimer(TimerNode& node)
-{
-    // swap with last element of array
-    int n = (int)heap_.size() - 1;
-    int i = node.index;
-    if (i != n) {
-        std::swap(heap_[i], heap_[n]);
-        heap_[i].index = i;
-    }
-
-    heap_.pop_back();
-    ref_.erase(node.id);
-
-    // re-balance heap
-    if (i != n) {
-        if (!siftDown(i, n)) {
-            siftUp(i);
-        }
-    }
-}
-
-int PriorityQueueTimer::Tick(int64_t now)
-{
-    if (heap_.empty()) {
-        return 0;
-    }
-    int fired = 0;
-    int max_id = next_id_;
-    while (!heap_.empty()) {
-        TimerNode& node = heap_.front();
-        if (now < node.deadline) {
-            break; // no more due timer to trigger
-        }
-        auto action = std::move(node.action);
-        delTimer(node);
-        fired++;
-
-        if (action) {
-            action();
-        }
-    }
-    return fired;
-}
-
-
-bool PriorityQueueTimer::siftDown(int x, int n)
+static bool siftdownTimer(vector<TimerNode*>& timers, int x, int n)
 {
     int i = x;
     for (;;) {
@@ -107,30 +59,105 @@ bool PriorityQueueTimer::siftDown(int x, int n)
         }
         int j = j1; // left child
         int j2 = j1 + 1;
-        if (j2 < n && !(heap_[j1] < heap_[j2])) {
+        if (j2 < n && !(timers[j1] < timers[j2])) {
             j = j2; // = 2*i + 2right child
         }
-        if (!(heap_[j] < heap_[i])) {
+        if (!(timers[j]->lessThan(timers[i]))) {
             break;
         }
-        std::swap(heap_[i], heap_[j]);
-        heap_[i].index = i;
-        heap_[j].index = j;
+        std::swap(timers[i], timers[j]);
+        timers[i]->index = i;
+        timers[j]->index = j;
         i = j;
     }
     return i > x;
 }
 
-void PriorityQueueTimer::siftUp(int j)
+static void siftupTimer(vector<TimerNode*>& timers, int j)
 {
     for (;;) {
         int i = (j - 1) / 2; // parent node
-        if (i == j || !(heap_[j] < heap_[i])) {
+        if (i == j || !(timers[j] < timers[i])) {
             break;
         }
-        std::swap(heap_[i], heap_[j]);
-        heap_[i].index = i;
-        heap_[j].index = j;
+        std::swap(timers[i], timers[j]);
+        timers[i]->index = i;
+        timers[j]->index = j;
         j = i;
     }
 }
+
+static void removeTimer(vector<TimerNode*>& timers, int i) {
+    // swap with last element of array
+    int n = (int)timers.size() - 1;
+    if (i != n) {
+        std::swap(timers[i], timers[n]);
+        timers[i]->index = i;
+
+        // re-balance heap
+        if (!siftdownTimer(timers, i, n)) {
+            siftupTimer(timers, i);
+        }
+    }
+    timers.pop_back();
+}
+
+int PriorityQueueTimer::Start(uint32_t duration, TimeoutAction action)
+{
+    int id = nextId();
+    int64_t expire = Clock::CurrentTimeMillis() + (int64_t)duration;
+    int i = (int)timers_.size();
+
+    TimerNode* node = new TimerNode;
+    node->id = id;
+    node->index = i;
+    node->deadline = expire;
+    node->action = action;
+
+    ref_[id] = node;
+    timers_.push_back(node);
+    siftupTimer(timers_, i);
+
+    return id;
+}
+
+bool PriorityQueueTimer::Cancel(int timer_id)
+{
+    auto iter = ref_.find(timer_id);
+    if (iter != ref_.end()) {
+        ref_.erase(iter);
+        removeTimer(timers_, iter->second->index);
+        return true;
+    }
+    return false;
+}
+
+int PriorityQueueTimer::Tick(int64_t now)
+{
+    if (timers_.empty()) {
+        return 0;
+    }
+    int fired = 0;
+    int max_id = next_id_;
+    while (!timers_.empty()) {
+        TimerNode* node = timers_[0];
+        if (now < node->deadline) {
+            break; // no timer expired
+        }
+        if (node->id > max_id) {
+            break; // process newly added timer at next tick
+        }
+        auto action = std::move(node->action);
+
+        ref_.erase(node->id);
+        removeTimer(timers_, 0);
+
+        fired++;
+
+        if (action) {
+            action();
+        }
+    }
+    return fired;
+}
+
