@@ -54,7 +54,7 @@ public:
 
     // per-tick bookkeeping
     // return number of fired timers
-    virtual int Tick(int64_t now) = 0;
+    virtual int Update(int64_t now) = 0;
 
     // count of pending timers.
     virtual int Size() const = 0;

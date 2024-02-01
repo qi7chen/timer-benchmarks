@@ -36,7 +36,7 @@ public:
     bool Cancel(int timer_id) override;
 
     // we assume 1 tick per ms
-    int Tick(int64_t ticks) override;
+    int Update(int64_t ticks) override;
 
     int Size() const override
     {

@@ -16,7 +16,7 @@ void Cancel(timer_id)
 
 // per-tick bookking routine
 // in single-thread timer scheduler implementions, this routine will run timeout actions
-int Tick(now)
+int Update(now)
 ```
 
 use [min-heap](https://en.wikipedia.org/wiki/Heap_(data_structure)), quaternary heap( [4-ary heap](https://en.wikipedia.org/wiki/D-ary_heap) ),

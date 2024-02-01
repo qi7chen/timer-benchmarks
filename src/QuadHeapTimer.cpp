@@ -166,7 +166,7 @@ bool QuadHeapTimer::Cancel(int timer_id)
     return false;
 }
 
-int QuadHeapTimer::Tick(int64_t now)
+int QuadHeapTimer::Update(int64_t now)
 {
     if (timers_.empty()) {
         return 0;

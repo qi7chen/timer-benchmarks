@@ -146,7 +146,7 @@ static void benchTimerTick(TimerSchedType timerType, benchmark::State& state)
     auto timer = createAndFillTimer(timerType, MaxN, timer_ids);
     for (auto _ : state)
     {
-        timer->Tick(Clock::CurrentTimeMillis());
+        timer->Update(Clock::CurrentTimeMillis());
     }
     doNotOptimizeAway(timer);
 }

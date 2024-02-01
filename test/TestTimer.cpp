@@ -39,7 +39,7 @@ static void TestTimerAdd(TimerBase *timer, int count) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     EXPECT_EQ(timer->Size(), count);
-    int fired = timer->Tick(Clock::CurrentTimeMillis());
+    int fired = timer->Update(Clock::CurrentTimeMillis());
     EXPECT_EQ(fired, count);
     EXPECT_EQ(called, count);
     EXPECT_EQ(timer->Size(), 0);
@@ -51,7 +51,7 @@ static void TestTimerAdd(TimerBase *timer, int count) {
         });
         timer->Cancel(id);
     }
-    fired = timer->Tick(Clock::CurrentTimeMillis());
+    fired = timer->Update(Clock::CurrentTimeMillis());
     EXPECT_EQ(fired, 0);
     EXPECT_EQ(timer->Size(), 0);
     EXPECT_EQ(called, 0);
@@ -66,7 +66,7 @@ static void TestTimerDel(TimerBase *timer, int count) {
         called++;
     });
 
-    timer->Tick(Clock::CurrentTimeMillis());
+    timer->Update(Clock::CurrentTimeMillis());
     timer->Cancel(tid);
 
     EXPECT_EQ(called, 0);
@@ -97,7 +97,7 @@ static void TestTimerExpire(TimerBase *timer, int count) {
 
     int fired = 0;
     for (int i = 0; i <= max_interval; i++) {
-        fired += timer->Tick(Clock::CurrentTimeMillis());
+        fired += timer->Update(Clock::CurrentTimeMillis());
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
@@ -130,10 +130,10 @@ static void TestTimerExpireFIFO(TimerBase *timer) {
         ctx->id = tid;
     }
     for (int i = 0; i < 100; i++) {
-        timer->Tick(Clock::CurrentTimeMillis());
+        timer->Update(Clock::CurrentTimeMillis());
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    timer->Tick(Clock::CurrentTimeMillis());
+    timer->Update(Clock::CurrentTimeMillis());
 
     EXPECT_EQ(expired.size(), 50);
 

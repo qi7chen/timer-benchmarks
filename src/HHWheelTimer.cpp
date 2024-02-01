@@ -69,7 +69,7 @@ bool HHWheelTimer::Cancel(int timer_id)
     return true;
 }
 
-int HHWheelTimer::Tick(int64_t ticks)
+int HHWheelTimer::Update(int64_t ticks)
 {
     return run_timers(&base_, ticks);
 }

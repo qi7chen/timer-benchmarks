@@ -44,7 +44,7 @@ bool RBTreeTimer::Cancel(int timer_id)
     return false;
 }
 
-int RBTreeTimer::Tick(int64_t now)
+int RBTreeTimer::Update(int64_t now)
 {
     if (timers_.size() == 0) {
         return 0;

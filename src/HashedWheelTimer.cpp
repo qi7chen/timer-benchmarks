@@ -73,7 +73,7 @@ bool HashedWheelTimer::Cancel(int timer_id)
     return true;
 }
 
-int HashedWheelTimer::Tick(int64_t now)
+int HashedWheelTimer::Update(int64_t now)
 {
     if (Size() == 0) 
     {

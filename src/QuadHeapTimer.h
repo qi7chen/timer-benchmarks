@@ -35,7 +35,7 @@ class QuadHeapTimer : public TimerBase
     // cancel a timer
     bool Cancel(int timer_id) override;
 
-    int Tick(int64_t now = 0) override;
+    int Update(int64_t now = 0) override;
 
     int Size() const override 
     {

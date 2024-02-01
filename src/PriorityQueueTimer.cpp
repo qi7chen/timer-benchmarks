@@ -134,7 +134,7 @@ bool PriorityQueueTimer::Cancel(int timer_id)
     return false;
 }
 
-int PriorityQueueTimer::Tick(int64_t now)
+int PriorityQueueTimer::Update(int64_t now)
 {
     if (timers_.empty()) {
         return 0;
