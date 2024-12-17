@@ -9,8 +9,9 @@
 #include "Logging.h"
 
 const int WHEEL_SIZE = 512;
-const int64_t TICK_DURATION = 1;  // milliseconds
-const int64_t TIME_UNIT = 1;       // 10ms
+const int64_t TICK_DURATION = 1;  // 确定位置 milliseconds，2个都为1时，精度最高，ms级别
+const int64_t TIME_UNIT = 1;       // 1 ms 可以理解为精度  tick 数* unit == update持续时间
+
 
 HashedWheelTimer::HashedWheelTimer()
 {
