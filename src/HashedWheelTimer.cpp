@@ -9,8 +9,9 @@
 #include "Logging.h"
 
 const int WHEEL_SIZE = 512;
-const int64_t TICK_DURATION = 100;  // milliseconds
-const int64_t TIME_UNIT = 10;       // 10ms
+const int64_t TICK_DURATION = 1;  // 确定位置 milliseconds，2个都为1时，精度最高，ms级别
+const int64_t TIME_UNIT = 1;       // 1 ms 可以理解为精度  tick 数* unit == update持续时间
+
 
 HashedWheelTimer::HashedWheelTimer()
 {
@@ -97,7 +98,7 @@ int HashedWheelTimer::Update(int64_t now)
 int HashedWheelTimer::tick()
 {
     int64_t deadline = started_at_ + TICK_DURATION * (ticks_ + 1);
-    int idx = ticks_ % (WHEEL_SIZE - 1);
+    int idx = ticks_ % (WHEEL_SIZE);
     HashedWheelBucket* bucket = wheel_[idx];
     std::vector<HashedWheelTimeout*> expired;
     bucket->ExpireTimeouts(deadline, expired);
