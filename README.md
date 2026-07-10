@@ -30,7 +30,7 @@ FIFO means whether same deadline timers expire in FIFO order.
 
 FIFO的意思是相同到期时间的定时器是否按FIFO的顺序到期
 
-algo                      |          | Start()  | Cancel() | Tick()   |  FIFO  | implemention file
+algo                      |          | Start()  | Cancel() | Tick()   |  FIFO  | implementation file
 --------------------------|----------|----------|----------|----------|--------|-----------------------
 binary heap               | 最小堆   | O(log N) | O(log N) | O(1)     |   no   | [PriorityQueueTimer](src/PriorityQueueTimer.h)
 4-ary heap                | 四叉堆   | O(log N) | O(log N) | O(1)     |   no   | [QuatHeapTimer](src/QuatHeapTimer.h)
@@ -45,8 +45,7 @@ hierarchical timing wheel | 多级时间轮 | O(1)   | O(1)     | O(1)     |   y
 
 Obtain [CMake](https://cmake.org) first.
 
-* `sudo apt install cmake` on Ubuntu or Debian
-* `sudo yum install cmake` on Redhat or CentOS
+* `apt/yum/brew install cmake` on Linux/MacOS
 * `choco install cmake` on Windows use [choco](https://chocolatey.org/)
 
 run shell command
