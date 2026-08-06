@@ -1,6 +1,8 @@
 // Distributed under GPLv3 license, see accompanying files LICENSE
 
 #include "timer_list.h"
+
+#include <iostream>
 #include <assert.h>
 
 void init_timers(struct tvec_base* base, int64_t clock)
@@ -158,30 +160,23 @@ int del_timer(struct timer_list* timer)
 static int cascade(struct tvec_base* base, struct tvec* tv, int index)
 {
     /* cascade all the timers from tv up one level */
-    struct list_head tv_list;
+	struct timer_list *timer, *tmp;
+	struct list_head tv_list;
 
-    list_replace_init(tv->vec + index, &tv_list);
+	list_replace_init(tv->vec + index, &tv_list);
 
-    /*
-     * We are removing _all_ timers from the list, so we
-     * don't have to detach them individually.
-     */
-    timer_list* timer = list_entry(tv_list.next, timer_list, entry);
-    timer_list* tmp = list_entry(timer->entry.next, timer_list, entry);
+	/*
+	 * We are removing _all_ timers from the list, so we
+	 * don't have to detach them individually.
+	 */
+	list_for_each_entry_safe(timer, tmp, &tv_list, entry) {
+		// BUG_ON(tbase_get_base(timer->base) != base);
+		/* No accounting, while moving them */
+		__internal_add_timer(base, timer);
+	}
 
-    while (&timer->entry != &tv_list)
-    {
-        timer = tmp;
-        tmp = list_entry(tmp->entry.next, timer_list, entry);
-        // BUG_ON(tbase_get_base(timer->base) != base);
-        /* No accounting, while moving them */
-        __internal_add_timer(base, timer);
-    }
-
-    return index;
+	return index;
 }
-
-
 
 #define INDEX(N) ((base->timer_clk >> (TVR_BITS + (N) * TVN_BITS)) & TVN_MASK)
 
@@ -202,13 +197,13 @@ int run_timers(struct tvec_base* base, int64_t clock)
         }
         ++base->timer_clk;
         list_replace_init(base->tv1.vec + index, &work_list);
-
+        
         while (!list_empty(head)) {
             struct timer_list* timer = list_first_entry(head, timer_list, entry);
             auto fn = timer->function;
             base->running_timer = timer;
             detach_expired_timer(timer, base);
-
+            
             assert(fn);
             fn(timer);
 
